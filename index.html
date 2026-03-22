@@ -1,0 +1,2419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Catedral — Sistema de Gestión Integral</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --burgundy: #6B1A1A;
+    --burgundy-dark: #4A0E0E;
+    --burgundy-light: #8B2E2E;
+    --gold: #C9A84C;
+    --gold-light: #E2C97E;
+    --gold-pale: #F5EDD5;
+    --cream: #FAF6EE;
+    --cream-dark: #F0E8D5;
+    --charcoal: #1C1C1E;
+    --charcoal-mid: #2C2C2E;
+    --text-dark: #1A1A1A;
+    --text-mid: #4A4A4A;
+    --text-light: #7A7A7A;
+    --white: #FFFFFF;
+    --border: #D5C9A8;
+    --border-light: #E8DFC8;
+    --success: #2D6A4F;
+    --success-light: #D8F3DC;
+    --warning: #B5642A;
+    --warning-light: #FDEBD0;
+    --danger: #8B1A1A;
+    --danger-light: #FDDEDE;
+    --info: #1B4D6E;
+    --info-light: #D6EAF8;
+    --shadow: 0 4px 24px rgba(107,26,26,0.12);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 40px rgba(107,26,26,0.18);
+    --radius: 8px;
+    --radius-lg: 14px;
+    --sidebar-w: 260px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Crimson Pro', Georgia, serif;
+    background: var(--cream);
+    color: var(--text-dark);
+    min-height: 100vh;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  /* ===== LOGIN ===== */
+  #login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--burgundy-dark) 0%, var(--burgundy) 40%, var(--charcoal-mid) 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  #login-screen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C9A84C' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.3;
+  }
+  .login-card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 52px 48px;
+    width: 420px;
+    max-width: 95vw;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    z-index: 1;
+    animation: fadeUp 0.5s ease;
+  }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+  .login-logo {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .login-logo .crown { font-size: 42px; margin-bottom: 8px; display: block; }
+  .login-logo h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--burgundy);
+    letter-spacing: 1px;
+  }
+  .login-logo p { color: var(--text-light); font-size: 14px; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+  .login-divider { height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); margin: 24px 0; }
+  .login-roles {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .role-btn {
+    padding: 14px 10px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--cream);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    font-family: 'Crimson Pro', serif;
+    font-size: 14px;
+    color: var(--text-mid);
+  }
+  .role-btn:hover, .role-btn.selected {
+    border-color: var(--burgundy);
+    background: var(--burgundy);
+    color: var(--white);
+  }
+  .role-btn .role-icon { font-size: 22px; display: block; margin-bottom: 4px; }
+  .role-btn .role-name { font-weight: 600; font-size: 13px; }
+  .pin-group { margin-bottom: 20px; }
+  .pin-group label { display: block; font-size: 13px; color: var(--text-mid); margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+  .pin-dots {
+    display: flex; gap: 12px; justify-content: center; margin-bottom: 16px;
+  }
+  .pin-dot {
+    width: 48px; height: 56px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 22px;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--cream);
+    color: var(--text-dark);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .pin-dot:focus { border-color: var(--burgundy); background: var(--white); }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+    padding: 12px 24px;
+    border: none; border-radius: var(--radius);
+    font-family: 'Crimson Pro', serif;
+    font-size: 16px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--burgundy); color: var(--white); width: 100%; }
+  .btn-primary:hover { background: var(--burgundy-dark); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+  .btn-secondary { background: var(--cream-dark); color: var(--text-dark); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--border); }
+  .btn-gold { background: var(--gold); color: var(--charcoal); }
+  .btn-gold:hover { background: var(--gold-light); }
+  .btn-danger { background: var(--danger); color: var(--white); }
+  .btn-danger:hover { background: var(--burgundy-dark); }
+  .btn-success { background: var(--success); color: var(--white); }
+  .btn-success:hover { opacity: 0.9; }
+  .btn-sm { padding: 6px 14px; font-size: 13px; }
+  .btn-xs { padding: 4px 10px; font-size: 12px; }
+  .login-error {
+    background: var(--danger-light); color: var(--danger); border: 1px solid #f5c6c6;
+    border-radius: var(--radius); padding: 10px 14px; margin-bottom: 16px;
+    font-size: 14px; text-align: center; display: none;
+  }
+
+  /* ===== APP SHELL ===== */
+  #app { display: flex; min-height: 100vh; }
+
+  /* Sidebar */
+  #sidebar {
+    width: var(--sidebar-w); min-height: 100vh;
+    background: linear-gradient(180deg, var(--burgundy-dark) 0%, var(--charcoal) 100%);
+    display: flex; flex-direction: column;
+    position: fixed; left: 0; top: 0; bottom: 0; z-index: 100;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.25);
+  }
+  .sidebar-header {
+    padding: 28px 20px 20px;
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+  }
+  .sidebar-logo { color: var(--gold); font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; letter-spacing: 0.5px; }
+  .sidebar-logo span { display: block; color: rgba(255,255,255,0.5); font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-family: 'Crimson Pro', serif; margin-top: 2px; }
+  .sidebar-role-badge {
+    margin: 12px 0 0;
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(201,168,76,0.15); border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 20px; padding: 4px 12px;
+    color: var(--gold-light); font-size: 12px; font-weight: 600;
+  }
+  .sidebar-nav { flex: 1; padding: 16px 0; overflow-y: auto; }
+  .nav-section { padding: 0 12px; margin-bottom: 4px; }
+  .nav-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.3); padding: 12px 8px 6px; font-family: 'Crimson Pro', serif; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: var(--radius);
+    color: rgba(255,255,255,0.7); font-size: 14px;
+    cursor: pointer; transition: all 0.2s;
+    margin-bottom: 2px;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.08); color: var(--white); }
+  .nav-item.active { background: rgba(201,168,76,0.2); color: var(--gold-light); border-left: 3px solid var(--gold); padding-left: 9px; }
+  .nav-item .nav-icon { font-size: 17px; width: 22px; text-align: center; flex-shrink: 0; }
+  .nav-item .nav-badge { margin-left: auto; background: var(--gold); color: var(--charcoal); border-radius: 10px; padding: 1px 7px; font-size: 11px; font-weight: 700; }
+  .sidebar-footer { padding: 16px; border-top: 1px solid rgba(255,255,255,0.08); }
+  .sidebar-footer .btn { width: 100%; font-size: 13px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.12); }
+  .sidebar-footer .btn:hover { background: rgba(255,255,255,0.15); color: var(--white); }
+
+  /* Main */
+  #main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+  .topbar {
+    height: 64px; background: var(--white);
+    border-bottom: 1px solid var(--border-light);
+    display: flex; align-items: center; padding: 0 28px;
+    gap: 16px; position: sticky; top: 0; z-index: 50;
+    box-shadow: var(--shadow-sm);
+  }
+  .topbar h2 { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--burgundy); font-weight: 700; flex: 1; }
+  .topbar-actions { display: flex; align-items: center; gap: 10px; }
+  .content { padding: 28px; flex: 1; }
+
+  /* ===== CARDS & PANELS ===== */
+  .card {
+    background: var(--white); border-radius: var(--radius-lg);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-sm); overflow: hidden;
+  }
+  .card-header {
+    padding: 18px 24px; border-bottom: 1px solid var(--border-light);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .card-header h3 { font-family: 'Playfair Display', serif; font-size: 17px; color: var(--burgundy); font-weight: 700; flex: 1; }
+  .card-body { padding: 24px; }
+  .card-footer { padding: 16px 24px; border-top: 1px solid var(--border-light); background: var(--cream); }
+
+  /* Stats row */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--white); border-radius: var(--radius-lg);
+    padding: 20px; border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-sm); position: relative; overflow: hidden;
+  }
+  .stat-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--gold); }
+  .stat-card.burgundy::after { background: var(--burgundy); }
+  .stat-card.success::after { background: var(--success); }
+  .stat-card.warning::after { background: var(--warning); }
+  .stat-value { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--text-dark); }
+  .stat-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); margin-top: 4px; }
+  .stat-icon { position: absolute; right: 16px; top: 16px; font-size: 28px; opacity: 0.15; }
+
+  /* Forms */
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+  .form-grid-3 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label.field-label {
+    font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px;
+    color: var(--text-mid);
+  }
+  .required::after { content: ' *'; color: var(--burgundy); }
+  input[type="text"], input[type="number"], input[type="date"], input[type="email"],
+  input[type="tel"], input[type="password"], select, textarea {
+    padding: 10px 14px; border: 1.5px solid var(--border);
+    border-radius: var(--radius); font-family: 'Crimson Pro', serif; font-size: 15px;
+    color: var(--text-dark); background: var(--white); outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--burgundy); box-shadow: 0 0 0 3px rgba(107,26,26,0.08);
+  }
+  input:read-only { background: var(--cream); color: var(--text-light); }
+  textarea { resize: vertical; min-height: 80px; }
+  .input-hint { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+  .form-section-title {
+    grid-column: 1 / -1;
+    font-family: 'Playfair Display', serif; font-size: 15px;
+    color: var(--burgundy); font-weight: 600; padding: 8px 0 4px;
+    border-bottom: 1px solid var(--border-light);
+    margin-bottom: 4px;
+  }
+  .form-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; flex-wrap: wrap; }
+
+  /* Tables */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  thead th {
+    background: var(--burgundy); color: var(--gold-light);
+    padding: 11px 14px; text-align: left; font-family: 'Crimson Pro', serif;
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600;
+    white-space: nowrap;
+  }
+  thead th:first-child { border-radius: 0; }
+  tbody tr { border-bottom: 1px solid var(--border-light); transition: background 0.15s; }
+  tbody tr:hover { background: var(--gold-pale); }
+  tbody td { padding: 10px 14px; vertical-align: middle; color: var(--text-dark); }
+  tbody tr:last-child { border-bottom: none; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge-active { background: var(--success-light); color: var(--success); }
+  .badge-inactive { background: var(--danger-light); color: var(--danger); }
+  .badge-gold { background: rgba(201,168,76,0.15); color: var(--warning); border: 1px solid rgba(201,168,76,0.4); }
+  .badge-info { background: var(--info-light); color: var(--info); }
+  .badge-warning { background: var(--warning-light); color: var(--warning); }
+  .badge-draft { background: var(--cream-dark); color: var(--text-mid); border: 1px solid var(--border); }
+  .badge-pending { background: #FFF3CD; color: #856404; }
+  .badge-approved { background: var(--success-light); color: var(--success); }
+
+  /* Filters bar */
+  .filters-bar {
+    display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+    padding: 16px; background: var(--cream); border-bottom: 1px solid var(--border-light);
+  }
+  .filter-group { display: flex; align-items: center; gap: 6px; }
+  .filter-group label { font-size: 12px; color: var(--text-light); white-space: nowrap; }
+  .filter-group select, .filter-group input { padding: 7px 12px; font-size: 13px; min-width: 120px; }
+  .search-input { flex: 1; min-width: 200px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border-light); margin-bottom: 24px; overflow-x: auto; }
+  .tab {
+    padding: 12px 20px; cursor: pointer; font-family: 'Crimson Pro', serif;
+    font-size: 14px; font-weight: 600; color: var(--text-light);
+    border-bottom: 3px solid transparent; margin-bottom: -2px;
+    white-space: nowrap; transition: all 0.2s;
+  }
+  .tab:hover { color: var(--burgundy); }
+  .tab.active { color: var(--burgundy); border-bottom-color: var(--burgundy); }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(28,28,30,0.6);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000; padding: 20px; display: none;
+  }
+  .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+  .modal {
+    background: var(--white); border-radius: var(--radius-lg);
+    width: 100%; max-width: 700px; max-height: 90vh;
+    overflow-y: auto; box-shadow: var(--shadow-lg);
+    animation: slideUp 0.25s ease;
+  }
+  .modal.modal-sm { max-width: 440px; }
+  .modal.modal-lg { max-width: 900px; }
+  @keyframes slideUp { from { transform:translateY(30px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+  .modal-header {
+    padding: 20px 24px; border-bottom: 1px solid var(--border-light);
+    display: flex; align-items: center; gap: 12px; position: sticky; top: 0; background: var(--white); z-index: 1;
+  }
+  .modal-header h3 { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--burgundy); font-weight: 700; flex: 1; }
+  .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-light); padding: 4px; line-height: 1; transition: color 0.15s; }
+  .modal-close:hover { color: var(--text-dark); }
+  .modal-body { padding: 24px; }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border-light); display: flex; gap: 10px; justify-content: flex-end; }
+
+  /* Tooltips */
+  [data-tip] { position: relative; cursor: help; }
+  [data-tip]::after {
+    content: attr(data-tip);
+    position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+    background: var(--charcoal); color: var(--white); padding: 8px 12px;
+    border-radius: 6px; font-size: 12px; white-space: normal; max-width: 240px;
+    pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 999;
+    box-shadow: var(--shadow); line-height: 1.4; text-transform: none; letter-spacing: 0;
+    font-family: 'Crimson Pro', serif; font-weight: 400;
+  }
+  [data-tip]:hover::after { opacity: 1; }
+
+  /* Alert / Toast */
+  #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    padding: 14px 18px; border-radius: var(--radius); font-size: 14px;
+    box-shadow: var(--shadow); display: flex; align-items: center; gap: 10px;
+    animation: slideIn 0.3s ease; min-width: 280px;
+    font-family: 'Crimson Pro', serif;
+  }
+  @keyframes slideIn { from { transform:translateX(100%); opacity:0; } to { transform:translateX(0); opacity:1; } }
+  .toast-success { background: var(--success); color: var(--white); }
+  .toast-error { background: var(--danger); color: var(--white); }
+  .toast-warning { background: var(--warning); color: var(--white); }
+  .toast-info { background: var(--info); color: var(--white); }
+
+  /* Confirm dialog */
+  .confirm-box { text-align: center; }
+  .confirm-box .confirm-icon { font-size: 48px; margin-bottom: 12px; }
+  .confirm-box p { color: var(--text-mid); margin-bottom: 20px; }
+
+  /* Misc */
+  .divider { height: 1px; background: var(--border-light); margin: 20px 0; }
+  .text-muted { color: var(--text-light); font-size: 13px; }
+  .text-gold { color: var(--gold); }
+  .text-burgundy { color: var(--burgundy); }
+  .text-right { text-align: right; }
+  .text-center { text-align: center; }
+  .fw-bold { font-weight: 700; }
+  .empty-state {
+    text-align: center; padding: 60px 20px; color: var(--text-light);
+  }
+  .empty-state .empty-icon { font-size: 52px; margin-bottom: 12px; opacity: 0.4; }
+  .empty-state h4 { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--text-mid); margin-bottom: 6px; }
+  .history-list { display: flex; flex-direction: column; gap: 10px; }
+  .history-item {
+    padding: 12px 16px; background: var(--cream); border-radius: var(--radius);
+    border-left: 3px solid var(--gold); font-size: 13px;
+  }
+  .history-item .hi-date { color: var(--text-light); font-size: 12px; }
+  .progress-bar-wrap { background: var(--border-light); border-radius: 4px; height: 6px; overflow: hidden; }
+  .progress-bar { height: 100%; background: linear-gradient(90deg, var(--burgundy), var(--gold)); border-radius: 4px; transition: width 0.3s; }
+  .chip {
+    display: inline-block; padding: 2px 10px; border-radius: 12px;
+    font-size: 12px; background: var(--cream-dark); color: var(--text-mid); border: 1px solid var(--border);
+  }
+
+  /* Dashboard charts area */
+  .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+  .chart-card { background: var(--white); border-radius: var(--radius-lg); padding: 20px; border: 1px solid var(--border-light); }
+  .chart-card h4 { font-family: 'Playfair Display', serif; font-size: 15px; color: var(--burgundy); margin-bottom: 16px; }
+
+  /* Nomina table special */
+  .nomina-table { font-size: 13px; }
+  .nomina-table th { padding: 9px 10px; font-size: 11px; }
+  .nomina-table td { padding: 8px 10px; }
+  .nomina-table input[type="number"] { width: 70px; padding: 5px 8px; font-size: 13px; }
+  .nomina-total-row td { background: var(--gold-pale); font-weight: 700; }
+
+  /* File upload area */
+  .file-drop {
+    border: 2px dashed var(--border); border-radius: var(--radius);
+    padding: 28px; text-align: center; cursor: pointer;
+    transition: all 0.2s; background: var(--cream);
+  }
+  .file-drop:hover { border-color: var(--burgundy); background: var(--gold-pale); }
+  .file-drop .file-icon { font-size: 32px; margin-bottom: 8px; }
+  .file-drop p { color: var(--text-light); font-size: 14px; }
+
+  /* Audit log */
+  .audit-row td:nth-child(3) { max-width: 300px; word-break: break-word; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--burgundy-light); }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    :root { --sidebar-w: 0px; }
+    #sidebar { display: none; }
+    #main { margin-left: 0; }
+    .content { padding: 16px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .chart-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* Section visibility */
+  .section { display: none; }
+  .section.active { display: block; }
+  #login-screen.hidden { display: none; }
+  #app.hidden { display: none; }
+
+  /* Pin reveal toggle */
+  .pin-toggle { background: none; border: none; cursor: pointer; color: var(--text-light); font-size: 16px; padding: 0 4px; }
+
+  .accordion-header {
+    padding: 14px 18px; background: var(--cream-dark); border: 1px solid var(--border-light);
+    border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 10px;
+    font-weight: 600; font-size: 15px; color: var(--burgundy); margin-bottom: 4px;
+    transition: background 0.2s;
+  }
+  .accordion-header:hover { background: var(--border-light); }
+  .accordion-body { display: none; padding: 16px; border: 1px solid var(--border-light); border-top: none; border-radius: 0 0 var(--radius) var(--radius); margin-bottom: 8px; }
+  .accordion-body.open { display: block; }
+
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .tag-directo { background: rgba(45,106,79,0.12); color: var(--success); }
+  .tag-indirecto { background: rgba(181,100,42,0.12); color: var(--warning); }
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div id="toast-container"></div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="crown">⚜️</span>
+      <h1>La Catedral</h1>
+      <p>Sistema de Gestión Integral</p>
+    </div>
+    <div class="login-divider"></div>
+    <p style="text-align:center;font-size:14px;color:var(--text-light);margin-bottom:16px;">Seleccione su departamento e ingrese el PIN</p>
+    <div class="login-roles">
+      <button class="role-btn" data-role="admin" onclick="selectRole('admin',this)">
+        <span class="role-icon">👑</span>
+        <span class="role-name">Administración</span>
+      </button>
+      <button class="role-btn" data-role="rrhh" onclick="selectRole('rrhh',this)">
+        <span class="role-icon">👥</span>
+        <span class="role-name">RRHH</span>
+      </button>
+      <button class="role-btn" data-role="juridico" onclick="selectRole('juridico',this)">
+        <span class="role-icon">⚖️</span>
+        <span class="role-name">Jurídico</span>
+      </button>
+      <button class="role-btn" data-role="contabilidad" onclick="selectRole('contabilidad',this)">
+        <span class="role-icon">📊</span>
+        <span class="role-name">Contabilidad</span>
+      </button>
+    </div>
+    <div class="pin-group">
+      <label class="field-label">PIN de acceso (4 dígitos)</label>
+      <div class="pin-dots">
+        <input type="password" class="pin-dot" maxlength="1" id="p0" oninput="pinNav(0)" onkeydown="pinBack(event,0)">
+        <input type="password" class="pin-dot" maxlength="1" id="p1" oninput="pinNav(1)" onkeydown="pinBack(event,1)">
+        <input type="password" class="pin-dot" maxlength="1" id="p2" oninput="pinNav(2)" onkeydown="pinBack(event,2)">
+        <input type="password" class="pin-dot" maxlength="1" id="p3" oninput="pinNav(3)" onkeydown="pinBack(event,3)">
+      </div>
+    </div>
+    <div class="login-error" id="login-error">PIN incorrecto. Intente de nuevo.</div>
+    <button class="btn btn-primary" onclick="doLogin()">🔓 Acceder</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <!-- Sidebar -->
+  <nav id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">⚜️ La Catedral<span>Gestión Integral</span></div>
+      <div class="sidebar-role-badge" id="role-badge">—</div>
+    </div>
+    <div class="sidebar-nav" id="sidebar-nav"></div>
+    <div class="sidebar-footer">
+      <button class="btn" onclick="doLogout()">🚪 Cerrar sesión</button>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div id="main">
+    <div class="topbar">
+      <h2 id="page-title">Dashboard</h2>
+      <div class="topbar-actions" id="topbar-actions"></div>
+    </div>
+    <div class="content" id="app-content">
+      <!-- Sections rendered dynamically -->
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal-box">
+    <div class="modal-header">
+      <h3 id="modal-title">Modal</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer" style="display:none;"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE & STORAGE
+// ============================================================
+const STORAGE_KEY = 'lacatedral_v1';
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return getDefaultState();
+}
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE)); } catch(e) { showToast('Error al guardar datos: ' + e.message, 'error'); }
+}
+
+function getDefaultState() {
+  return {
+    config: {
+      pins: { rrhh: '1111', juridico: '2222', contabilidad: '3333' },
+      adminPin: '1059',
+      bonificacion: { nivel1: 5, anios1: 5, nivel2: 10, anios2: 10 },
+      recargoHorasExtras: 50,
+      diasVacaciones: 14,
+      diasPagadosPeriodo: 15
+    },
+    empleados: [],
+    traslados: [],
+    bajas: [],
+    sanciones: [],
+    nominas: [],
+    incidencias: [],
+    vacacionesControl: [],
+    historialSalarial: [],
+    documentos: {},
+    auditLog: [],
+    nextId: 1
+  };
+}
+
+let STATE = loadState();
+let currentRole = null;
+let currentSection = 'dashboard';
+
+// ============================================================
+// AUTH
+// ============================================================
+let selectedRole = null;
+
+function selectRole(role, btn) {
+  selectedRole = role;
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('p0').focus();
+}
+
+function pinNav(idx) {
+  const val = document.getElementById('p'+idx).value;
+  if (val && idx < 3) document.getElementById('p'+(idx+1)).focus();
+  if (idx === 3 && val) doLogin();
+}
+
+function pinBack(e, idx) {
+  if (e.key === 'Backspace' && !document.getElementById('p'+idx).value && idx > 0) {
+    document.getElementById('p'+(idx-1)).focus();
+  }
+  if (e.key === 'Enter') doLogin();
+}
+
+function getPin() {
+  return ['p0','p1','p2','p3'].map(id => document.getElementById(id).value).join('');
+}
+
+function clearPin() {
+  ['p0','p1','p2','p3'].forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('p0').focus();
+}
+
+function doLogin() {
+  if (!selectedRole) { showToast('Seleccione un departamento', 'warning'); return; }
+  const pin = getPin();
+  if (pin.length < 4) { showToast('Ingrese los 4 dígitos del PIN', 'warning'); return; }
+  const cfg = STATE.config;
+  const valid = {
+    admin: cfg.adminPin,
+    rrhh: cfg.pins.rrhh,
+    juridico: cfg.pins.juridico,
+    contabilidad: cfg.pins.contabilidad
+  };
+  if (pin === valid[selectedRole]) {
+    currentRole = selectedRole;
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    addAuditLog('LOGIN', `Inicio de sesión como ${getRoleName(currentRole)}`);
+    renderSidebar();
+    navigateTo('dashboard');
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+    clearPin();
+    setTimeout(() => { document.getElementById('login-error').style.display = 'none'; }, 3000);
+  }
+}
+
+function doLogout() {
+  currentRole = null;
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('login-screen').classList.remove('hidden');
+  selectedRole = null;
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+  clearPin();
+}
+
+function getRoleName(role) {
+  const names = { admin: 'Administración', rrhh: 'RRHH', juridico: 'Jurídico', contabilidad: 'Contabilidad' };
+  return names[role] || role;
+}
+
+function getRoleIcon(role) {
+  const icons = { admin: '👑', rrhh: '👥', juridico: '⚖️', contabilidad: '📊' };
+  return icons[role] || '👤';
+}
+
+// ============================================================
+// SIDEBAR & NAVIGATION
+// ============================================================
+const NAV_ITEMS = {
+  admin: [
+    { section: 'dashboard', icon: '📈', label: 'Dashboard' },
+    { section: 'empleados', icon: '👥', label: 'Empleados', header: 'RRHH' },
+    { section: 'alta', icon: '➕', label: 'Alta de Empleado' },
+    { section: 'traslados', icon: '🔄', label: 'Traslados' },
+    { section: 'bajas', icon: '📤', label: 'Bajas' },
+    { section: 'salarios', icon: '💰', label: 'Salarios Base', header: 'ADMINISTRACIÓN' },
+    { section: 'contratos', icon: '📄', label: 'Contratos', header: 'JURÍDICO' },
+    { section: 'sanciones', icon: '⚠️', label: 'Sanciones' },
+    { section: 'nomina', icon: '📋', label: 'Nóminas', header: 'CONTABILIDAD' },
+    { section: 'incidencias', icon: '🗓️', label: 'Incidencias' },
+    { section: 'vacaciones', icon: '🌴', label: 'Vacaciones' },
+    { section: 'configuracion', icon: '⚙️', label: 'Configuración', header: 'SISTEMA' },
+    { section: 'auditoria', icon: '📝', label: 'Auditoría' },
+    { section: 'backup', icon: '💾', label: 'Copia de Seguridad' }
+  ],
+  rrhh: [
+    { section: 'dashboard', icon: '📈', label: 'Dashboard' },
+    { section: 'empleados', icon: '👥', label: 'Empleados', header: 'PERSONAL' },
+    { section: 'alta', icon: '➕', label: 'Alta de Empleado' },
+    { section: 'traslados', icon: '🔄', label: 'Traslados' },
+    { section: 'bajas', icon: '📤', label: 'Bajas' }
+  ],
+  juridico: [
+    { section: 'dashboard', icon: '📈', label: 'Dashboard' },
+    { section: 'empleados', icon: '👥', label: 'Empleados', header: 'PERSONAL' },
+    { section: 'contratos', icon: '📄', label: 'Contratos', header: 'JURÍDICO' },
+    { section: 'sanciones', icon: '⚠️', label: 'Sanciones' },
+    { section: 'bajas', icon: '📤', label: 'Ver Bajas' }
+  ],
+  contabilidad: [
+    { section: 'dashboard', icon: '📈', label: 'Dashboard' },
+    { section: 'empleados', icon: '👥', label: 'Empleados', header: 'CONSULTA' },
+    { section: 'nomina', icon: '📋', label: 'Nóminas', header: 'CONTABILIDAD' },
+    { section: 'incidencias', icon: '🗓️', label: 'Incidencias' },
+    { section: 'vacaciones', icon: '🌴', label: 'Vacaciones' }
+  ]
+};
+
+function renderSidebar() {
+  const badge = document.getElementById('role-badge');
+  badge.textContent = getRoleIcon(currentRole) + ' ' + getRoleName(currentRole);
+  const nav = document.getElementById('sidebar-nav');
+  const items = NAV_ITEMS[currentRole] || [];
+  let html = '';
+  let curHeader = null;
+  items.forEach(item => {
+    if (item.header && item.header !== curHeader) {
+      curHeader = item.header;
+      html += `<div class="nav-section"><div class="nav-section-label">${item.header}</div>`;
+    }
+    html += `<div class="nav-section"><div class="nav-item" data-section="${item.section}" onclick="navigateTo('${item.section}')">
+      <span class="nav-icon">${item.icon}</span> <span>${item.label}</span></div></div>`;
+  });
+  nav.innerHTML = html;
+}
+
+function navigateTo(section) {
+  currentSection = section;
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.section === section);
+  });
+  const titles = {
+    dashboard: 'Dashboard', empleados: 'Empleados', alta: 'Alta de Empleado',
+    traslados: 'Traslados', bajas: 'Bajas', salarios: 'Salarios Base',
+    contratos: 'Contratos', sanciones: 'Sanciones', nomina: 'Nóminas',
+    incidencias: 'Incidencias', vacaciones: 'Submayor de Vacaciones',
+    configuracion: 'Configuración', auditoria: 'Log de Auditoría', backup: 'Copia de Seguridad'
+  };
+  document.getElementById('page-title').textContent = titles[section] || section;
+  document.getElementById('topbar-actions').innerHTML = '';
+  const content = document.getElementById('app-content');
+  const renders = {
+    dashboard: renderDashboard, empleados: renderEmpleados, alta: renderAlta,
+    traslados: renderTraslados, bajas: renderBajas, salarios: renderSalarios,
+    contratos: renderContratos, sanciones: renderSanciones, nomina: renderNomina,
+    incidencias: renderIncidencias, vacaciones: renderVacaciones,
+    configuracion: renderConfiguracion, auditoria: renderAuditoria, backup: renderBackup
+  };
+  if (renders[section]) renders[section](content);
+  else content.innerHTML = '<div class="empty-state"><div class="empty-icon">🚧</div><h4>En construcción</h4></div>';
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function uid() { return (STATE.nextId++).toString().padStart(6,'0'); }
+
+function addAuditLog(tipo, detalle) {
+  STATE.auditLog.unshift({
+    fecha: new Date().toISOString(),
+    rol: getRoleName(currentRole),
+    tipo,
+    detalle
+  });
+  if (STATE.auditLog.length > 2000) STATE.auditLog.pop();
+  saveState();
+}
+
+function showToast(msg, type = 'info', duration = 3500) {
+  const c = document.getElementById('toast-container');
+  const div = document.createElement('div');
+  div.className = `toast toast-${type}`;
+  const icons = { success:'✅', error:'❌', warning:'⚠️', info:'ℹ️' };
+  div.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  c.appendChild(div);
+  setTimeout(() => { div.style.opacity='0'; div.style.transition='opacity 0.4s'; setTimeout(()=>div.remove(),400); }, duration);
+}
+
+function openModal(title, body, footer = '', size = '') {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').innerHTML = body;
+  const mf = document.getElementById('modal-footer');
+  if (footer) { mf.innerHTML = footer; mf.style.display = 'flex'; }
+  else { mf.innerHTML = ''; mf.style.display = 'none'; }
+  const mb = document.getElementById('modal-box');
+  mb.className = 'modal' + (size ? ' modal-'+size : '');
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+
+function confirmAction(msg, onConfirm) {
+  openModal('Confirmar acción',
+    `<div class="confirm-box"><div class="confirm-icon">⚠️</div><p>${msg}</p></div>`,
+    `<button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+     <button class="btn btn-danger" onclick="closeModal();(${onConfirm.toString()})()">Confirmar</button>`,
+    'sm'
+  );
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  try { return new Date(d).toLocaleDateString('es-ES', {day:'2-digit',month:'2-digit',year:'numeric'}); } catch(e) { return d; }
+}
+
+function fmtMoney(n) {
+  if (n == null || isNaN(n)) return '—';
+  return new Intl.NumberFormat('es-ES',{style:'currency',currency:'USD',minimumFractionDigits:2}).format(n);
+}
+
+function calcAntiguedad(fechaAlta) {
+  if (!fechaAlta) return 0;
+  const diff = new Date() - new Date(fechaAlta);
+  return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+}
+
+function calcBonificacion(salario, fechaAlta) {
+  const anos = calcAntiguedad(fechaAlta);
+  const cfg = STATE.config.bonificacion;
+  if (anos >= cfg.anios2) return salario * (cfg.nivel2 / 100);
+  if (anos >= cfg.anios1) return salario * (cfg.nivel1 / 100);
+  return 0;
+}
+
+function getBonificacionPct(fechaAlta) {
+  const anos = calcAntiguedad(fechaAlta);
+  const cfg = STATE.config.bonificacion;
+  if (anos >= cfg.anios2) return cfg.nivel2;
+  if (anos >= cfg.anios1) return cfg.nivel1;
+  return 0;
+}
+
+const PLAZAS = {
+  SALA: ['Jefe de turno','Cajero/a','Cantinero/a','Camarero/a','Portero/a','Ayudante de camarero/a','Mochila','Cocina'],
+  TIENDA: ['Cajero/a','Dependiente'],
+  COCINA: ['Chef ejecutivo','Jefe de partida','Salsero','Parrillero','Lunchero','Fregador'],
+  'ALMACÉN': ['Jefe de almacén','Ayudante de almacén','Jefe de carnicería','Carnicero'],
+  'LOGÍSTICA': ['Jefe de logística','Chofer','Estibador','Custodio','Mantenimiento'],
+  'ADMINISTRACIÓN': ['Gerente general','RRHH','Depto Jurídico','Depto Económico','Depto Comercial','Depto de Marketing']
+};
+
+function getEmpleadosActivos() { return STATE.empleados.filter(e => e.activo); }
+
+function exportToExcel(data, filename) {
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Datos');
+  XLSX.writeFile(wb, filename + '.xlsx');
+}
+
+function fileToBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = () => rej(new Error('Error al leer archivo'));
+    r.readAsDataURL(file);
+  });
+}
+
+function downloadBase64(b64, filename) {
+  const a = document.createElement('a');
+  a.href = b64;
+  a.download = filename;
+  a.click();
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard(container) {
+  const activos = getEmpleadosActivos();
+  const bajas = STATE.bajas.length;
+  const nomActual = STATE.nominas.find(n => n.estado === 'pendiente') || {};
+  const totalNomina = (STATE.nominas.find(n=>n.estado==='aprobada') || {totalDevengado:0}).totalDevengado || 0;
+
+  const deptCounts = {};
+  activos.forEach(e => { deptCounts[e.departamento] = (deptCounts[e.departamento]||0)+1; });
+  const clsCounts = { Directo: activos.filter(e=>e.clasificacion==='Directo').length, Indirecto: activos.filter(e=>e.clasificacion==='Indirecto').length };
+
+  container.innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card burgundy"><span class="stat-icon">👥</span><div class="stat-value">${activos.length}</div><div class="stat-label">Empleados Activos</div></div>
+      <div class="stat-card"><span class="stat-icon">🌴</span><div class="stat-value">${STATE.bajas.length}</div><div class="stat-label">Bajas Registradas</div></div>
+      <div class="stat-card success"><span class="stat-icon">📋</span><div class="stat-value">${STATE.nominas.filter(n=>n.estado==='aprobada').length}</div><div class="stat-label">Nóminas Aprobadas</div></div>
+      <div class="stat-card warning"><span class="stat-icon">⚠️</span><div class="stat-value">${STATE.sanciones.length}</div><div class="stat-label">Sanciones Totales</div></div>
+    </div>
+    <div class="chart-grid">
+      <div class="chart-card"><h4>Distribución por Departamento</h4><canvas id="chart-dept" height="200"></canvas></div>
+      <div class="chart-card"><h4>Clasificación de Personal</h4><canvas id="chart-cls" height="200"></canvas></div>
+      <div class="chart-card"><h4>Empleados por Antigüedad</h4><canvas id="chart-ant" height="200"></canvas></div>
+      <div class="chart-card"><h4>Estado de Nóminas</h4><canvas id="chart-nom" height="200"></canvas></div>
+    </div>`;
+
+  setTimeout(() => {
+    const depts = Object.keys(deptCounts);
+    new Chart(document.getElementById('chart-dept'), {
+      type:'doughnut',
+      data:{ labels: depts, datasets:[{ data: depts.map(d=>deptCounts[d]), backgroundColor:['#6B1A1A','#C9A84C','#2D6A4F','#1B4D6E','#B5642A','#8B2E2E'] }] },
+      options:{ responsive:true, plugins:{ legend:{ position:'bottom', labels:{ font:{size:11} } } } }
+    });
+    new Chart(document.getElementById('chart-cls'), {
+      type:'pie',
+      data:{ labels:['Directo','Indirecto'], datasets:[{ data:[clsCounts.Directo,clsCounts.Indirecto], backgroundColor:['#6B1A1A','#C9A84C'] }] },
+      options:{ responsive:true, plugins:{ legend:{ position:'bottom' } } }
+    });
+    const ant = [0,0,0]; // 0-4, 5-9, 10+
+    activos.forEach(e => {
+      const a = calcAntiguedad(e.fechaAlta);
+      if (a < 5) ant[0]++;
+      else if (a < 10) ant[1]++;
+      else ant[2]++;
+    });
+    new Chart(document.getElementById('chart-ant'), {
+      type:'bar',
+      data:{ labels:['0-4 años','5-9 años','10+ años'], datasets:[{ label:'Empleados', data:ant, backgroundColor:['#C9A84C','#6B1A1A','#2D6A4F'] }] },
+      options:{ responsive:true, plugins:{ legend:{display:false} }, scales:{ y:{ beginAtZero:true, ticks:{stepSize:1} } } }
+    });
+    const nomEstados = { borrador:0, pendiente:0, aprobada:0 };
+    STATE.nominas.forEach(n => { nomEstados[n.estado] = (nomEstados[n.estado]||0)+1; });
+    new Chart(document.getElementById('chart-nom'), {
+      type:'doughnut',
+      data:{ labels:['Borrador','Pendiente','Aprobada'], datasets:[{ data:[nomEstados.borrador,nomEstados.pendiente,nomEstados.aprobada], backgroundColor:['#9E9E9E','#F0AD4E','#2D6A4F'] }] },
+      options:{ responsive:true, plugins:{ legend:{ position:'bottom' } } }
+    });
+  }, 100);
+}
+
+// ============================================================
+// EMPLEADOS - LIST
+// ============================================================
+function renderEmpleados(container) {
+  const canEditSalary = currentRole === 'admin';
+  const topbarActs = document.getElementById('topbar-actions');
+  topbarActs.innerHTML = `<button class="btn btn-secondary btn-sm" onclick="exportEmpleados()">⬇️ Exportar Excel</button>`;
+  if(currentRole==='admin'||currentRole==='rrhh') topbarActs.innerHTML += `<button class="btn btn-primary btn-sm" onclick="navigateTo('alta')">➕ Nuevo Empleado</button>`;
+
+  container.innerHTML = `
+    <div class="card">
+      <div class="filters-bar">
+        <div class="filter-group" style="flex:1">
+          <input type="text" class="search-input" id="f-nombre" placeholder="🔍 Buscar por nombre..." oninput="applyFilters()">
+        </div>
+        <div class="filter-group"><label>Dpto</label>
+          <select id="f-dept" onchange="applyFilters()"><option value="">Todos</option>${Object.keys(PLAZAS).map(d=>`<option>${d}</option>`).join('')}</select></div>
+        <div class="filter-group"><label>Estado</label>
+          <select id="f-estado" onchange="applyFilters()"><option value="">Todos</option><option>Activo</option><option>Baja</option></select></div>
+        <div class="filter-group"><label>Clasificación</label>
+          <select id="f-cls" onchange="applyFilters()"><option value="">Todos</option><option>Directo</option><option>Indirecto</option></select></div>
+        <div class="filter-group"><label>Antigüedad</label>
+          <select id="f-ant" onchange="applyFilters()"><option value="">Todos</option><option value="0-4">0-4 años</option><option value="5-9">5-9 años</option><option value="10+">10+ años</option></select></div>
+      </div>
+      <div class="table-wrap">
+        <table id="emp-table">
+          <thead><tr>
+            <th>Nombre</th><th>Carnet</th><th>Departamento</th><th>Plaza</th>
+            ${canEditSalary?'<th>Salario Base</th><th>Bonif. %</th><th>Total</th>':''}
+            <th>Clasificación</th><th>Jornada</th><th>Antigüedad</th><th>Estado</th><th>Acciones</th>
+          </tr></thead>
+          <tbody id="emp-tbody"></tbody>
+        </table>
+      </div>
+    </div>`;
+  applyFilters();
+}
+
+function applyFilters() {
+  const nom = (document.getElementById('f-nombre')||{}).value||'';
+  const dept = (document.getElementById('f-dept')||{}).value||'';
+  const est = (document.getElementById('f-estado')||{}).value||'';
+  const cls = (document.getElementById('f-cls')||{}).value||'';
+  const ant = (document.getElementById('f-ant')||{}).value||'';
+  const canEditSalary = currentRole === 'admin';
+  let emps = STATE.empleados.filter(e => {
+    const nombre = `${e.nombres} ${e.apellidos}`.toLowerCase();
+    if (nom && !nombre.includes(nom.toLowerCase())) return false;
+    if (dept && e.departamento !== dept) return false;
+    if (est === 'Activo' && !e.activo) return false;
+    if (est === 'Baja' && e.activo) return false;
+    if (cls && e.clasificacion !== cls) return false;
+    if (ant) {
+      const a = calcAntiguedad(e.fechaAlta);
+      if (ant === '0-4' && a >= 5) return false;
+      if (ant === '5-9' && (a < 5 || a >= 10)) return false;
+      if (ant === '10+' && a < 10) return false;
+    }
+    return true;
+  });
+  const tbody = document.getElementById('emp-tbody');
+  if (!tbody) return;
+  if (!emps.length) { tbody.innerHTML = `<tr><td colspan="20" class="text-center text-muted" style="padding:40px">No hay empleados con esos filtros</td></tr>`; return; }
+  tbody.innerHTML = emps.map(e => {
+    const ant = calcAntiguedad(e.fechaAlta);
+    const bPct = getBonificacionPct(e.fechaAlta);
+    const bon = calcBonificacion(e.salarioBase||0, e.fechaAlta);
+    const total = (e.salarioBase||0) + bon;
+    return `<tr>
+      <td><strong>${e.nombres} ${e.apellidos}</strong></td>
+      <td><code>${e.carnet}</code></td>
+      <td><span class="chip">${e.departamento||'—'}</span></td>
+      <td>${e.plaza||'—'}</td>
+      ${canEditSalary?`<td>${fmtMoney(e.salarioBase)}</td><td>${bPct?bPct+'%':'—'}</td><td><strong>${fmtMoney(total)}</strong></td>`:''}
+      <td><span class="tag tag-${(e.clasificacion||'').toLowerCase()}">${e.clasificacion||'—'}</span></td>
+      <td>${e.jornada||'—'} días</td>
+      <td>${ant} año${ant===1?'':'s'}</td>
+      <td><span class="badge ${e.activo?'badge-active':'badge-inactive'}">${e.activo?'Activo':'Baja'}</span></td>
+      <td><button class="btn btn-secondary btn-xs" onclick="verFicha('${e.id}')">👁️ Ficha</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function exportEmpleados() {
+  const data = STATE.empleados.map(e => ({
+    Nombre: `${e.nombres} ${e.apellidos}`, Carnet: e.carnet, Departamento: e.departamento,
+    Plaza: e.plaza, 'Salario Base': e.salarioBase||0, 'Bonif. %': getBonificacionPct(e.fechaAlta)+'%',
+    Clasificación: e.clasificacion, Jornada: e.jornada, Estado: e.activo?'Activo':'Baja',
+    'Fecha Alta': fmtDate(e.fechaAlta), 'Años': calcAntiguedad(e.fechaAlta)
+  }));
+  exportToExcel(data, 'Empleados_LaCatedral_'+new Date().toISOString().slice(0,10));
+  showToast('Exportado a Excel', 'success');
+}
+
+// ============================================================
+// FICHA COMPLETA
+// ============================================================
+function verFicha(id) {
+  const e = STATE.empleados.find(x=>x.id===id);
+  if (!e) return;
+  const anos = calcAntiguedad(e.fechaAlta);
+  const bPct = getBonificacionPct(e.fechaAlta);
+  const bon = calcBonificacion(e.salarioBase||0, e.fechaAlta);
+  const total = (e.salarioBase||0) + bon;
+  const traslados = STATE.traslados.filter(t=>t.empleadoId===id);
+  const sanciones = (currentRole==='admin'||currentRole==='juridico') ? STATE.sanciones.filter(s=>s.empleadoId===id) : [];
+  const histSal = currentRole==='admin' ? STATE.historialSalarial.filter(h=>h.empleadoId===id) : [];
+  const doc = STATE.documentos[id] || {};
+
+  // Vacaciones
+  const anoActual = new Date().getFullYear();
+  const vacTomadas = STATE.incidencias.filter(i=>i.empleadoId===id && i.tipo==='Vacaciones' && new Date(i.fechaInicio).getFullYear()===anoActual).reduce((s,i)=>s+parseInt(i.diasAfectados||0),0);
+  const diasDerecho = STATE.config.diasVacaciones;
+  const vacPend = Math.max(0, diasDerecho - vacTomadas);
+
+  let body = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div><b>Nombre:</b> ${e.nombres} ${e.apellidos}</div>
+      <div><b>Carnet:</b> <code>${e.carnet}</code></div>
+      <div><b>Teléfono:</b> ${e.telefono||'—'}</div>
+      <div><b>F. Nacimiento:</b> ${fmtDate(e.fechaNacimiento)}</div>
+      <div><b>Dirección:</b> ${e.direccion||'—'}</div>
+      <div><b>NSS:</b> ${e.nss||'—'}</div>
+      <div><b>NIF:</b> ${e.nif||'—'}</div>
+      <div><b>Banco/Cuenta:</b> ${e.banco||'—'} / ${e.cuenta||'—'}</div>
+      <div><b>Profesión:</b> ${e.profesion||'—'}</div>
+      <div><b>Contrato:</b> ${e.tipoContrato||'—'}</div>
+      <div><b>Departamento:</b> ${e.departamento||'—'}</div>
+      <div><b>Plaza:</b> ${e.plaza||'—'}</div>
+      <div><b>Clasificación:</b> <span class="tag tag-${(e.clasificacion||'').toLowerCase()}">${e.clasificacion||'—'}</span></div>
+      <div><b>Jornada:</b> ${e.jornada||'—'} días</div>
+      <div><b>Fecha Alta:</b> ${fmtDate(e.fechaAlta)}</div>
+      <div><b>Antigüedad:</b> ${anos} año(s)</div>
+      <div><b>Estado:</b> <span class="badge ${e.activo?'badge-active':'badge-inactive'}">${e.activo?'Activo':'Baja'}</span></div>
+    </div>
+    ${currentRole==='admin'||currentRole==='contabilidad'?`<div style="background:var(--gold-pale);border-radius:8px;padding:14px;margin-bottom:16px;">
+      <b>Datos Económicos</b><br><br>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;font-size:14px">
+        <div><span class="text-muted">Salario Base</span><br><b>${fmtMoney(e.salarioBase)}</b></div>
+        <div><span class="text-muted">Bonificación (${bPct}%)</span><br><b>${fmtMoney(bon)}</b></div>
+        <div><span class="text-muted">Total</span><br><b style="color:var(--burgundy)">${fmtMoney(total)}</b></div>
+        <div><span class="text-muted">Sal. Diario</span><br><b>${fmtMoney((e.salarioBase||0)/(e.jornada||24))}</b></div>
+      </div>
+    </div>`:''}
+    <div style="background:var(--info-light);border-radius:8px;padding:14px;margin-bottom:16px;">
+      <b>🌴 Control de Vacaciones (${anoActual})</b><br><br>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;font-size:14px">
+        <div><span class="text-muted">Derecho anual</span><br><b>${diasDerecho} días</b></div>
+        <div><span class="text-muted">Tomados</span><br><b>${vacTomadas} días</b></div>
+        <div><span class="text-muted">Pendientes</span><br><b style="color:var(--burgundy)">${vacPend} días</b></div>
+      </div>
+    </div>`;
+
+  if (traslados.length) {
+    body += `<div class="divider"></div><b>📋 Historial de Traslados</b><br><br><div class="history-list">` +
+      traslados.map(t=>`<div class="history-item"><div class="hi-date">${fmtDate(t.fecha)}</div><div>${t.deptAnterior} → <b>${t.deptNuevo}</b> | ${t.plazaNueva} | ${t.motivo}</div></div>`).join('') + '</div>';
+  }
+
+  if (histSal.length) {
+    body += `<div class="divider"></div><b>💰 Historial Salarial</b><br><br><div class="history-list">` +
+      histSal.map(h=>`<div class="history-item"><div class="hi-date">${fmtDate(h.fecha)}</div><div>${fmtMoney(h.anterior)} → <b>${fmtMoney(h.nuevo)}</b> | ${h.motivo}</div></div>`).join('') + '</div>';
+  }
+
+  if (sanciones.length) {
+    body += `<div class="divider"></div><b>⚠️ Historial de Sanciones</b><br><br><div class="history-list">` +
+      sanciones.map(s=>`<div class="history-item" style="border-left-color:var(--danger)"><div class="hi-date">${fmtDate(s.fecha)}</div><div><b>${s.tipo}</b> — ${s.motivo}</div></div>`).join('') + '</div>';
+  }
+
+  // Documentos
+  body += `<div class="divider"></div><b>📎 Documentos Adjuntos</b><br><br><div style="display:flex;gap:10px;flex-wrap:wrap">`;
+  if (doc.obligaciones) body += `<button class="btn btn-secondary btn-sm" onclick="downloadBase64('${doc.obligaciones}','Obligaciones_${e.nombres.replace(/ /g,'_')}.pdf')">📄 Descargar Obligaciones</button>`;
+  if (doc.contrato) body += `<button class="btn btn-secondary btn-sm" onclick="downloadBase64('${doc.contrato}','Contrato_${e.nombres.replace(/ /g,'_')}.pdf')">📑 Descargar Contrato</button>`;
+  if (!doc.obligaciones && !doc.contrato) body += `<span class="text-muted">Sin documentos adjuntos</span>`;
+  body += `</div>`;
+
+  const footer = `
+    <button class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
+    <button class="btn btn-gold btn-sm" onclick="exportFichaExcel('${id}')">⬇️ Excel</button>
+    ${currentRole==='admin'&&!e.activo?`<button class="btn btn-success btn-sm" onclick="closeModal();restaurarEmpleado('${id}')">♻️ Restaurar</button>`:''}
+    ${currentRole==='admin'?`<button class="btn btn-primary btn-sm" onclick="closeModal();editarEmpleado('${id}')">✏️ Editar</button>`:''}`;
+
+  openModal(`Ficha: ${e.nombres} ${e.apellidos}`, body, footer, 'lg');
+}
+
+function exportFichaExcel(id) {
+  const e = STATE.empleados.find(x=>x.id===id);
+  if (!e) return;
+  const data = [{
+    Nombre:`${e.nombres} ${e.apellidos}`, Carnet:e.carnet, Teléfono:e.telefono,
+    'F.Nacimiento':fmtDate(e.fechaNacimiento), Dirección:e.direccion, NSS:e.nss, NIF:e.nif,
+    Banco:e.banco, Cuenta:e.cuenta, Profesión:e.profesion, 'Tipo Contrato':e.tipoContrato,
+    Departamento:e.departamento, Plaza:e.plaza, Clasificación:e.clasificacion,
+    Jornada:e.jornada, 'Fecha Alta':fmtDate(e.fechaAlta), 'Antigüedad':calcAntiguedad(e.fechaAlta)+' años',
+    'Salario Base':e.salarioBase, 'Bonif. %':getBonificacionPct(e.fechaAlta)+'%', Estado:e.activo?'Activo':'Baja'
+  }];
+  exportToExcel(data, `Ficha_${e.nombres.replace(/ /g,'_')}`);
+  showToast('Ficha exportada', 'success');
+}
+
+// ============================================================
+// ALTA DE EMPLEADO
+// ============================================================
+function renderAlta(container, editData = null) {
+  const isEdit = !!editData;
+  const d = editData || {};
+  const depts = Object.keys(PLAZAS);
+  container.innerHTML = `
+    <div class="card">
+      <div class="card-header"><h3>${isEdit?'✏️ Editar Empleado':'➕ Alta de Empleado'}</h3></div>
+      <div class="card-body">
+        <div class="form-grid" id="alta-form">
+          <div class="form-section-title">📋 Datos Personales</div>
+          <div class="form-group"><label class="field-label required">Fecha de Alta</label><input type="date" id="a-fechaAlta" value="${d.fechaAlta||''}"></div>
+          <div class="form-group"><label class="field-label required">Nombres</label><input type="text" id="a-nombres" value="${d.nombres||''}" placeholder="Nombre(s)"></div>
+          <div class="form-group"><label class="field-label required">Apellidos</label><input type="text" id="a-apellidos" value="${d.apellidos||''}" placeholder="Apellido(s)"></div>
+          <div class="form-group"><label class="field-label required" data-tip="Debe tener exactamente 11 cifras">N° Carnet (11 dígitos)</label><input type="text" id="a-carnet" maxlength="11" value="${d.carnet||''}" placeholder="12345678901"></div>
+          <div class="form-group"><label class="field-label">Teléfono</label><input type="tel" id="a-telefono" value="${d.telefono||''}"></div>
+          <div class="form-group"><label class="field-label">Fecha de Nacimiento</label><input type="date" id="a-fechaNacimiento" value="${d.fechaNacimiento||''}"></div>
+          <div class="form-group full"><label class="field-label">Dirección Particular</label><input type="text" id="a-direccion" value="${d.direccion||''}" placeholder="Calle, número, ciudad..."></div>
+          <div class="form-group"><label class="field-label" data-tip="Número de Seguridad Social">NSS</label><input type="text" id="a-nss" value="${d.nss||''}"></div>
+          <div class="form-group"><label class="field-label" data-tip="NIF / CUIT / RUT según país">NIF/CUIT/RUT</label><input type="text" id="a-nif" value="${d.nif||''}"></div>
+          <div class="form-group"><label class="field-label">Banco</label><input type="text" id="a-banco" value="${d.banco||''}"></div>
+          <div class="form-group"><label class="field-label">N° de Cuenta</label><input type="text" id="a-cuenta" value="${d.cuenta||''}"></div>
+          <div class="form-group"><label class="field-label">Profesión/Oficio</label><input type="text" id="a-profesion" value="${d.profesion||''}"></div>
+          <div class="form-section-title">💼 Datos Laborales</div>
+          <div class="form-group"><label class="field-label required">Tipo de Contrato</label>
+            <select id="a-contrato">
+              ${['Indefinido','Temporal por obra','Temporal eventual','Formación','Prácticas','Relevo'].map(t=>`<option ${d.tipoContrato===t?'selected':''}>${t}</option>`).join('')}
+            </select></div>
+          <div class="form-group"><label class="field-label required" data-tip="Directo: producción/servicio. Indirecto: apoyo/administración.">Clasificación</label>
+            <select id="a-clasificacion">
+              <option ${d.clasificacion==='Directo'?'selected':''}>Directo</option>
+              <option ${d.clasificacion==='Indirecto'?'selected':''}>Indirecto</option>
+            </select></div>
+          <div class="form-group"><label class="field-label required" data-tip="Días de trabajo mensual contratados">Jornada Mensual</label>
+            <select id="a-jornada">
+              <option value="24" ${d.jornada==24?'selected':''}>24 días</option>
+              <option value="15" ${d.jornada==15?'selected':''}>15 días</option>
+            </select></div>
+          <div class="form-group"><label class="field-label required">Departamento</label>
+            <select id="a-departamento" onchange="updatePlazas()" >
+              ${depts.map(dept=>`<option ${d.departamento===dept?'selected':''}>${dept}</option>`).join('')}
+            </select></div>
+          <div class="form-group"><label class="field-label required">Plaza</label>
+            <select id="a-plaza">${d.plaza?`<option selected>${d.plaza}</option>`:''}</select></div>
+          ${isEdit?`<div class="form-section-title">📎 Documento de Obligaciones</div>
+          <div class="form-group full"><label class="field-label">PDF Obligaciones y Responsabilidades</label>
+            <div class="file-drop" onclick="document.getElementById('a-pdf-obl').click()">
+              <div class="file-icon">📄</div><p>Clic para adjuntar PDF de Obligaciones</p>
+              <input type="file" id="a-pdf-obl" accept="application/pdf" style="display:none" onchange="previewFile(this,'a-pdf-obl-name')">
+              <span id="a-pdf-obl-name" class="text-muted" style="font-size:13px"></span>
+            </div></div>`:
+          (currentRole==='rrhh'?`<div class="form-section-title">📎 Documento de Obligaciones</div>
+          <div class="form-group full"><label class="field-label">PDF Obligaciones y Responsabilidades</label>
+            <div class="file-drop" onclick="document.getElementById('a-pdf-obl').click()">
+              <div class="file-icon">📄</div><p>Clic para adjuntar PDF de Obligaciones</p>
+              <input type="file" id="a-pdf-obl" accept="application/pdf" style="display:none" onchange="previewFile(this,'a-pdf-obl-name')">
+              <span id="a-pdf-obl-name" class="text-muted" style="font-size:13px"></span>
+            </div></div>`:'')}
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-secondary" onclick="navigateTo('empleados')">Cancelar</button>
+          <button class="btn btn-primary" onclick="${isEdit?`guardarEdicionEmpleado('${d.id}')`:'guardarAlta()'}">💾 ${isEdit?'Guardar Cambios':'Registrar Empleado'}</button>
+        </div>
+      </div>
+    </div>`;
+  updatePlazas();
+  if (d.departamento) {
+    setTimeout(() => {
+      const sel = document.getElementById('a-plaza');
+      if (sel && d.plaza) {
+        for (let opt of sel.options) { if (opt.value === d.plaza) { opt.selected = true; break; } }
+      }
+    }, 50);
+  }
+}
+
+function previewFile(input, labelId) {
+  const label = document.getElementById(labelId);
+  if (input.files[0]) label.textContent = '✅ ' + input.files[0].name;
+}
+
+function updatePlazas() {
+  const dept = document.getElementById('a-departamento');
+  const plaza = document.getElementById('a-plaza');
+  if (!dept || !plaza) return;
+  const plazas = PLAZAS[dept.value] || [];
+  plaza.innerHTML = plazas.map(p=>`<option>${p}</option>`).join('');
+}
+
+async function guardarAlta() {
+  const nombres = document.getElementById('a-nombres').value.trim();
+  const apellidos = document.getElementById('a-apellidos').value.trim();
+  const carnet = document.getElementById('a-carnet').value.trim();
+  const fechaAlta = document.getElementById('a-fechaAlta').value;
+  if (!nombres || !apellidos || !carnet || !fechaAlta) { showToast('Complete los campos obligatorios', 'warning'); return; }
+  if (!/^\d{11}$/.test(carnet)) { showToast('El carnet debe tener exactamente 11 dígitos', 'error'); return; }
+  if (STATE.empleados.find(e => e.carnet === carnet)) { showToast('Ya existe un empleado con ese carnet', 'error'); return; }
+
+  const id = 'E' + uid();
+  const emp = {
+    id, fechaAlta, nombres, apellidos, carnet,
+    telefono: document.getElementById('a-telefono').value,
+    fechaNacimiento: document.getElementById('a-fechaNacimiento').value,
+    direccion: document.getElementById('a-direccion').value,
+    nss: document.getElementById('a-nss').value,
+    nif: document.getElementById('a-nif').value,
+    banco: document.getElementById('a-banco').value,
+    cuenta: document.getElementById('a-cuenta').value,
+    profesion: document.getElementById('a-profesion').value,
+    tipoContrato: document.getElementById('a-contrato').value,
+    clasificacion: document.getElementById('a-clasificacion').value,
+    jornada: parseInt(document.getElementById('a-jornada').value),
+    departamento: document.getElementById('a-departamento').value,
+    plaza: document.getElementById('a-plaza').value,
+    salarioBase: null,
+    activo: true
+  };
+  STATE.empleados.push(emp);
+
+  // PDF Obligaciones
+  const pdfInput = document.getElementById('a-pdf-obl');
+  if (pdfInput && pdfInput.files[0]) {
+    try {
+      const b64 = await fileToBase64(pdfInput.files[0]);
+      if (!STATE.documentos[id]) STATE.documentos[id] = {};
+      STATE.documentos[id].obligaciones = b64;
+    } catch(e) { showToast('Error al adjuntar PDF', 'warning'); }
+  }
+
+  saveState();
+  addAuditLog('ALTA', `Alta empleado: ${nombres} ${apellidos} (${carnet}) — ${emp.departamento} / ${emp.plaza}`);
+  showToast(`Empleado ${nombres} ${apellidos} registrado. Administración debe asignar salario.`, 'success', 5000);
+  navigateTo('empleados');
+}
+
+function editarEmpleado(id) {
+  const emp = STATE.empleados.find(e=>e.id===id);
+  if (!emp) return;
+  renderAlta(document.getElementById('app-content'), emp);
+  document.getElementById('page-title').textContent = 'Editar Empleado';
+}
+
+async function guardarEdicionEmpleado(id) {
+  const emp = STATE.empleados.find(e=>e.id===id);
+  if (!emp) return;
+  const carnet = document.getElementById('a-carnet').value.trim();
+  if (!/^\d{11}$/.test(carnet)) { showToast('El carnet debe tener exactamente 11 dígitos', 'error'); return; }
+  const existing = STATE.empleados.find(e => e.carnet === carnet && e.id !== id);
+  if (existing) { showToast('Ya existe otro empleado con ese carnet', 'error'); return; }
+
+  Object.assign(emp, {
+    fechaAlta: document.getElementById('a-fechaAlta').value,
+    nombres: document.getElementById('a-nombres').value.trim(),
+    apellidos: document.getElementById('a-apellidos').value.trim(),
+    carnet,
+    telefono: document.getElementById('a-telefono').value,
+    fechaNacimiento: document.getElementById('a-fechaNacimiento').value,
+    direccion: document.getElementById('a-direccion').value,
+    nss: document.getElementById('a-nss').value,
+    nif: document.getElementById('a-nif').value,
+    banco: document.getElementById('a-banco').value,
+    cuenta: document.getElementById('a-cuenta').value,
+    profesion: document.getElementById('a-profesion').value,
+    tipoContrato: document.getElementById('a-contrato').value,
+    clasificacion: document.getElementById('a-clasificacion').value,
+    jornada: parseInt(document.getElementById('a-jornada').value),
+    departamento: document.getElementById('a-departamento').value,
+    plaza: document.getElementById('a-plaza').value
+  });
+
+  const pdfInput = document.getElementById('a-pdf-obl');
+  if (pdfInput && pdfInput.files[0]) {
+    try {
+      const b64 = await fileToBase64(pdfInput.files[0]);
+      if (!STATE.documentos[id]) STATE.documentos[id] = {};
+      STATE.documentos[id].obligaciones = b64;
+    } catch(e) {}
+  }
+
+  saveState();
+  addAuditLog('EDICION', `Edición empleado: ${emp.nombres} ${emp.apellidos} (Admin)`);
+  showToast('Empleado actualizado', 'success');
+  navigateTo('empleados');
+}
+
+// ============================================================
+// TRASLADOS
+// ============================================================
+function renderTraslados(container) {
+  document.getElementById('topbar-actions').innerHTML = `<button class="btn btn-primary btn-sm" onclick="openModalTraslado()">➕ Registrar Traslado</button>`;
+  const traslados = STATE.traslados.slice().reverse();
+  container.innerHTML = `
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Empleado</th><th>Fecha</th><th>Dept. Anterior</th><th>Dept. Nuevo</th><th>Plaza Nueva</th><th>Clasificación</th><th>Motivo</th></tr></thead>
+          <tbody>${traslados.length?traslados.map(t=>{
+            const e = STATE.empleados.find(x=>x.id===t.empleadoId);
+            return `<tr><td>${e?`${e.nombres} ${e.apellidos}`:'—'}</td><td>${fmtDate(t.fecha)}</td>
+            <td>${t.deptAnterior||'—'}</td><td>${t.deptNuevo}</td><td>${t.plazaNueva}</td>
+            <td>${t.clasificacionNueva||'—'}</td><td>${t.motivo}</td></tr>`;
+          }).join('') : `<tr><td colspan="7" class="text-center text-muted" style="padding:40px">No hay traslados registrados</td></tr>`}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function openModalTraslado() {
+  const activos = getEmpleadosActivos();
+  const depts = Object.keys(PLAZAS);
+  let body = `<div class="form-grid">
+    <div class="form-group full"><label class="field-label required">Empleado</label>
+      <select id="tr-emp">
+        <option value="">Seleccione...</option>
+        ${activos.map(e=>`<option value="${e.id}">${e.nombres} ${e.apellidos}</option>`).join('')}
+      </select></div>
+    <div class="form-group"><label class="field-label required">Fecha de Traslado</label><input type="date" id="tr-fecha" value="${new Date().toISOString().slice(0,10)}"></div>
+    <div class="form-group"><label class="field-label required">Motivo</label><input type="text" id="tr-motivo" placeholder="Motivo del traslado"></div>
+    <div class="form-group"><label class="field-label required">Nuevo Departamento</label>
+      <select id="tr-dept" onchange="updateTraslPlazas()">
+        ${depts.map(d=>`<option>${d}</option>`).join('')}
+      </select></div>
+    <div class="form-group"><label class="field-label required">Nueva Plaza</label>
+      <select id="tr-plaza"></select></div>
+    <div class="form-group"><label class="field-label" data-tip="Solo si cambia la clasificación del empleado">Nueva Clasificación (si aplica)</label>
+      <select id="tr-cls"><option value="">Sin cambio</option><option>Directo</option><option>Indirecto</option></select></div>
+  </div>`;
+  openModal('🔄 Registrar Traslado', body,
+    `<button class="btn btn-secondary" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="guardarTraslado()">💾 Guardar</button>`);
+  setTimeout(updateTraslPlazas, 100);
+}
+
+function updateTraslPlazas() {
+  const dept = document.getElementById('tr-dept');
+  const plaza = document.getElementById('tr-plaza');
+  if (!dept || !plaza) return;
+  plaza.innerHTML = (PLAZAS[dept.value]||[]).map(p=>`<option>${p}</option>`).join('');
+}
+
+function guardarTraslado() {
+  const empId = document.getElementById('tr-emp').value;
+  const fecha = document.getElementById('tr-fecha').value;
+  const motivo = document.getElementById('tr-motivo').value.trim();
+  const deptNuevo = document.getElementById('tr-dept').value;
+  const plazaNueva = document.getElementById('tr-plaza').value;
+  const clsNueva = document.getElementById('tr-cls').value;
+  if (!empId || !fecha || !motivo) { showToast('Complete todos los campos requeridos', 'warning'); return; }
+  const emp = STATE.empleados.find(e=>e.id===empId);
+  if (!emp) return;
+  const traslado = {
+    id: 'T'+uid(), empleadoId: empId, fecha, motivo,
+    deptAnterior: emp.departamento, plazaAnterior: emp.plaza,
+    deptNuevo, plazaNueva, clasificacionNueva: clsNueva || emp.clasificacion
+  };
+  STATE.traslados.push(traslado);
+  emp.departamento = deptNuevo;
+  emp.plaza = plazaNueva;
+  if (clsNueva) emp.clasificacion = clsNueva;
+  saveState();
+  addAuditLog('TRASLADO', `Traslado ${emp.nombres} ${emp.apellidos}: ${traslado.deptAnterior}→${deptNuevo} / ${plazaNueva}`);
+  showToast('Traslado registrado. Administración puede revisar salario.', 'success', 4000);
+  closeModal();
+  renderTraslados(document.getElementById('app-content'));
+}
+
+// ============================================================
+// BAJAS
+// ============================================================
+function renderBajas(container) {
+  const canRegister = currentRole==='admin'||currentRole==='rrhh';
+  document.getElementById('topbar-actions').innerHTML = `
+    ${canRegister?`<button class="btn btn-primary btn-sm" onclick="openModalBaja()">📤 Registrar Baja</button>`:''}
+    <button class="btn btn-secondary btn-sm" onclick="exportBajas()">⬇️ Excel</button>`;
+  container.innerHTML = `
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Empleado</th><th>Fecha Baja</th><th>Motivo</th><th>Registrado por</th><th>Documento</th>${currentRole==='admin'?'<th>Acciones</th>':''}</tr></thead>
+          <tbody>${STATE.bajas.length?STATE.bajas.slice().reverse().map(b=>{
+            const e = STATE.empleados.find(x=>x.id===b.empleadoId);
+            return `<tr>
+              <td>${e?`${e.nombres} ${e.apellidos}`:'—'}</td>
+              <td>${fmtDate(b.fecha)}</td><td>${b.motivo}</td>
+              <td><span class="badge badge-info">${b.registradoPor||'—'}</span></td>
+              <td>${STATE.documentos[b.empleadoId]?.bajaPDF?`<button class="btn btn-secondary btn-xs" onclick="downloadBase64('${STATE.documentos[b.empleadoId].bajaPDF}','Baja_${e?e.nombres:'emp'}.pdf')">📄</button>`:'—'}</td>
+              ${currentRole==='admin'?`<td><button class="btn btn-success btn-xs" onclick="restaurarEmpleado('${b.empleadoId}')">♻️ Restaurar</button></td>`:''}
+            </tr>`;
+          }).join('') : `<tr><td colspan="6" class="text-center text-muted" style="padding:40px">No hay bajas registradas</td></tr>`}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function openModalBaja() {
+  const activos = getEmpleadosActivos();
+  let body = `<div class="form-grid">
+    <div class="form-group full"><label class="field-label required">Empleado</label>
+      <select id="baja-emp"><option value="">Seleccione...</option>
+        ${activos.map(e=>`<option value="${e.id}">${e.nombres} ${e.apellidos}</option>`).join('')}
+      </select></div>
+    <div class="form-group"><label class="field-label required">Fecha de Baja</label><input type="date" id="baja-fecha" value="${new Date().toISOString().slice(0,10)}"></div>
+    <div class="form-group"><label class="field-label required">Motivo</label>
+      <select id="baja-motivo-tipo">
+        <option>Despido</option><option>Renuncia voluntaria</option><option>Jubilación</option><option>Fallecimiento</option><option>Fin de contrato</option><option>Otro</option>
+      </select></div>
+    <div class="form-group full"><label class="field-label">Detalle (opcional)</label><textarea id="baja-detalle" placeholder="Descripción adicional..."></textarea></div>
+    <div class="form-group full"><label class="field-label">Adjuntar Documento PDF</label>
+      <div class="file-drop" onclick="document.getElementById('baja-pdf').click()">
+        <div class="file-icon">📄</div><p>Clic para adjuntar justificación (opcional)</p>
+        <input type="file" id="baja-pdf" accept="application/pdf" style="display:none" onchange="previewFile(this,'baja-pdf-name')">
+        <span id="baja-pdf-name" class="text-muted" style="font-size:13px"></span>
+      </div></div>
+  </div>`;
+  openModal('📤 Registrar Baja', body,
+    `<button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+     <button class="btn btn-danger" onclick="confirmarBaja()">Registrar Baja</button>`);
+}
+
+function confirmarBaja() {
+  const empId = document.getElementById('baja-emp').value;
+  if (!empId) { showToast('Seleccione un empleado', 'warning'); return; }
+  const emp = STATE.empleados.find(e=>e.id===empId);
+  confirmAction(`¿Confirma dar de baja a <b>${emp.nombres} ${emp.apellidos}</b>?`, async function(){
+    const fecha = document.getElementById('baja-fecha').value;
+    const motivo = document.getElementById('baja-motivo-tipo').value + ' — ' + (document.getElementById('baja-detalle').value||'');
+    const baja = { id:'B'+uid(), empleadoId: empId, fecha, motivo, registradoPor: getRoleName(currentRole) };
+    STATE.bajas.push(baja);
+    emp.activo = false;
+    emp.fechaBaja = fecha;
+    const pdfInput = document.getElementById('baja-pdf');
+    if (pdfInput && pdfInput.files[0]) {
+      try {
+        const b64 = await fileToBase64(pdfInput.files[0]);
+        if (!STATE.documentos[empId]) STATE.documentos[empId] = {};
+        STATE.documentos[empId].bajaPDF = b64;
+      } catch(e) {}
+    }
+    saveState();
+    addAuditLog('BAJA', `Baja: ${emp.nombres} ${emp.apellidos} — ${motivo}`);
+    showToast('Empleado dado de baja', 'warning', 4000);
+    renderBajas(document.getElementById('app-content'));
+  });
+}
+
+function restaurarEmpleado(empId) {
+  const emp = STATE.empleados.find(e=>e.id===empId);
+  if (!emp) return;
+  confirmAction(`¿Restaurar a <b>${emp.nombres} ${emp.apellidos}</b> como empleado activo?`, function(){
+    emp.activo = true;
+    emp.fechaBaja = null;
+    const idx = STATE.bajas.findIndex(b=>b.empleadoId===empId);
+    if (idx > -1) STATE.bajas.splice(idx, 1);
+    saveState();
+    addAuditLog('RESTAURACION', `Empleado restaurado: ${emp.nombres} ${emp.apellidos}`);
+    showToast('Empleado restaurado', 'success');
+    navigateTo('bajas');
+  });
+}
+
+function exportBajas() {
+  const data = STATE.bajas.map(b => {
+    const e = STATE.empleados.find(x=>x.id===b.empleadoId);
+    return { Nombre: e?`${e.nombres} ${e.apellidos}`:'—', Carnet:e?.carnet||'—', 'Fecha Baja':fmtDate(b.fecha), Motivo:b.motivo, 'Registrado por':b.registradoPor };
+  });
+  exportToExcel(data, 'Bajas_LaCatedral');
+  showToast('Exportado', 'success');
+}
+
+// ============================================================
+// SALARIOS (Admin only)
+// ============================================================
+function renderSalarios(container) {
+  if (currentRole !== 'admin') { container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔒</div><h4>Acceso restringido a Administración</h4></div>'; return; }
+  const activos = getEmpleadosActivos();
+  container.innerHTML = `
+    <div class="card">
+      <div class="card-header"><h3>💰 Gestión de Salarios Base</h3></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Empleado</th><th>Departamento</th><th>Plaza</th><th>Jornada</th><th>Antigüedad</th><th>Salario Base</th><th>Bonif. %</th><th>Total</th><th>Acción</th></tr></thead>
+          <tbody>${activos.map(e=>{
+            const bPct = getBonificacionPct(e.fechaAlta);
+            const bon = calcBonificacion(e.salarioBase||0, e.fechaAlta);
+            const total = (e.salarioBase||0)+bon;
+            return `<tr>
+              <td><b>${e.nombres} ${e.apellidos}</b></td>
+              <td>${e.departamento}</td><td>${e.plaza}</td>
+              <td>${e.jornada} días</td>
+              <td>${calcAntiguedad(e.fechaAlta)} años</td>
+              <td><input type="number" id="sal-${e.id}" value="${e.salarioBase||''}" min="0" step="0.01" style="width:120px" placeholder="0.00"></td>
+              <td>${bPct?bPct+'%':'—'}</td>
+              <td id="total-${e.id}">${fmtMoney(total)}</td>
+              <td><button class="btn btn-primary btn-xs" onclick="guardarSalario('${e.id}')">💾</button></td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function guardarSalario(empId) {
+  const emp = STATE.empleados.find(e=>e.id===empId);
+  if (!emp) return;
+  const val = parseFloat(document.getElementById('sal-'+empId).value);
+  if (isNaN(val) || val < 0) { showToast('Ingrese un salario válido', 'error'); return; }
+  openModal('Cambio de Salario',
+    `<div class="form-grid modal-sm">
+      <div class="form-group full"><label class="field-label">Motivo del cambio</label>
+        <textarea id="sal-motivo" placeholder="Ej: Incremento anual, promoción..."></textarea></div>
+    </div>`,
+    `<button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+     <button class="btn btn-primary" onclick="confirmarSalario('${empId}',${val})">Confirmar</button>`,'sm');
+}
+
+function confirmarSalario(empId, nuevoSal) {
+  const motivo = document.getElementById('sal-motivo').value.trim();
+  if (!motivo) { showToast('El motivo es obligatorio', 'warning'); return; }
+  const emp = STATE.empleados.find(e=>e.id===empId);
+  const anterior = emp.salarioBase;
+  STATE.historialSalarial.push({ id:'HS'+uid(), empleadoId:empId, fecha:new Date().toISOString(), anterior, nuevo:nuevoSal, motivo });
+  emp.salarioBase = nuevoSal;
+  saveState();
+  addAuditLog('SALARIO', `Cambio salario ${emp.nombres} ${emp.apellidos}: ${fmtMoney(anterior)} → ${fmtMoney(nuevoSal)} — ${motivo}`);
+  showToast('Salario actualizado', 'success');
+  closeModal();
+  renderSalarios(document.getElementById('app-content'));
+}
+
+// ============================================================
+// CONTRATOS (Jurídico + Admin)
+// ============================================================
+function renderContratos(container) {
+  const canEdit = currentRole==='juridico'||currentRole==='admin';
+  document.getElementById('topbar-actions').innerHTML = canEdit?`<button class="btn btn-primary btn-sm" onclick="openModalContrato()">📄 Adjuntar Contrato</button>`:'' ;
+  const activos = STATE.empleados.filter(e=>e.activo||true);
+  container.innerHTML = `
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Empleado</th><th>Departamento</th><th>Plaza</th><th>Tipo Contrato</th><th>Fecha Alta</th><th>Contrato PDF</th><th>Obligaciones PDF</th></tr></thead>
+          <tbody>${activos.map(e=>{
+            const doc = STATE.documentos[e.id] || {};
+            return `<tr>
+              <td><b>${e.nombres} ${e.apellidos}</b> <span class="badge ${e.activo?'badge-active':'badge-inactive'}">${e.activo?'Activo':'Baja'}</span></td>
+              <td>${e.departamento}</td><td>${e.plaza}</td><td>${e.tipoContrato}</td>
+              <td>${fmtDate(e.fechaAlta)}</td>
+              <td>${doc.contrato?`<button class="btn btn-secondary btn-xs" onclick="downloadBase64(STATE.documentos['${e.id}'].contrato,'Contrato_${e.nombres.replace(/ /g,'_')}.pdf')">📥 Ver</button>`:`${canEdit?`<button class="btn btn-gold btn-xs" onclick="adjuntarContratoEmp('${e.id}')">📎 Adjuntar</button>`:'—'}`}</td>
+              <td>${doc.obligaciones?`<button class="btn btn-secondary btn-xs" onclick="downloadBase64(STATE.documentos['${e.id}'].obligaciones,'Obligaciones_${e.nombres.replace(/ /g,'_')}.pdf')">📥 Ver</button>`:'—'}</td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function adjuntarContratoEmp(empId) {
+  const emp = STATE.empleados.find(e=>e.id===empId);
+  openModal('📄 Adjuntar Contrato',
+    `<p style="margin-bottom:16px">Empleado: <b>${emp.nombres} ${emp.apellidos}</b></p>
+    <div class="file-drop" onclick="document.getElementById('contr-pdf').click()">
+      <div class="file-icon">📑</div><p>Clic para seleccionar el contrato firmado (PDF)</p>
+      <input type="file" id="contr-pdf" accept="application/pdf" style="display:none" onchange="previewFile(this,'contr-name')">
+      <span id="contr-name" class="text-muted"></span>
+    </div>`,
+    `<button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+     <button class="btn btn-primary" onclick="guardarContrato('${empId}')">💾 Guardar</button>`,'sm');
+}
+
+async function guardarContrato(empId) {
+  const pdfInput = document.getElementById('contr-pdf');
+  if (!pdfInput.files[0]) { showToast('Seleccione un archivo PDF', 'warning'); return; }
+  try {
+    const b64 = await fileToBase64(pdfInput.files[0]);
+    if (!STATE.documentos[empId]) STATE.documentos[empId] = {};
+    STATE.documentos[empId].contrato = b64;
+    saveState();
+    const emp = STATE.empleados.find(e=>e.id===empId);
+    addAuditLog('CONTRATO', `Contrato adjuntado para ${emp.nombres} ${emp.apellidos}`);
+    showToast('Contrato adjuntado', 'success');
+    closeModal();
+    renderContratos(document.getElementById('app-content'));
+  } catch(e) { showToast('Error al procesar el PDF', 'error'); }
+}
+
+function openModalContrato() {
+  const activos = getEmpleadosActivos();
+  openModal('📄 Seleccionar Empleado',
+    `<div class="form-group"><label class="field-label">Empleado</label>
+      <select id="sel-contr-emp">
+        <option value="">Seleccione...</option>
+        ${activos.map(e=>`<option value="${e.id}">${e.nombres} ${e.apellidos}</option>`).join('')}
+      </select></div>`,
+    `<button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+     <button class="btn btn-primary" onclick="selContrEmp()">Siguiente</button>`,'sm');
+}
+
+function selContrEmp() {
+  const empId = document.getElementById('sel-contr-emp').value;
+  if (!empId) { showToast('Seleccione un empleado', 'warning'); return; }
+  closeModal();
+  adjuntarContratoEmp(empId);
+}
+
+// ============================================================
+// SANCIONES
+// ============================================================
+function renderSanciones(container) {
+  const canAdd = currentRole==='juridico'||currentRole==='admin';
+  document.getElementById('topbar-actions').innerHTML = `
+    ${canAdd?`<button class="btn btn-primary btn-sm" onclick="openModalSancion()">⚠️ Nueva Sanción</button>`:''}
+    <button class="btn btn-secondary btn-sm" onclick="exportSanciones()">⬇️ Excel</button>`;
+  container.innerHTML = `
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Empleado</th><th>Fecha</th><th>Tipo</th><th>Motivo</th><th>Documento</th>${currentRole==='admin'?'<th>Eliminar</th>':''}</tr></thead>
+          <tbody>${STATE.sanciones.length?STATE.sanciones.slice().reverse().map(s=>{
+            const e = STATE.empleados.find(x=>x.id===s.empleadoId);
+            return `<tr>
+              <td>${e?`${e.nombres} ${e.apellidos}`:'—'}</td>
+              <td>${fmtDate(s.fecha)}</td>
+              <td><span class="badge badge-warning">${s.tipo}</span></td>
+              <td>${s.motivo}</td>
+              <td>${s.docPDF?`<button class="btn btn-secondary btn-xs" onclick="downloadBase64('${s.docPDF}','Sancion.pdf')">📄</button>`:'—'}</td>
+              ${currentRole==='admin'?`<td><button class="btn btn-danger btn-xs" onclick="eliminarSancion('${s.id}')">🗑️</button></td>`:''}
+            </tr>`;
+          }).join('') : `<tr><td colspan="6" class="text-center text-muted" style="padding:40px">No hay sanciones registradas</td></tr>`}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function openModalSancion() {
+  const activos = getEmpleadosActivos();
+  let body = `<div class="form-grid">
+    <div class="form-group full"><label class="field-label required">Empleado</label>
+      <select id="san-emp"><option value="">Seleccione...</option>
+        ${activos.map(e=>`<option value="${e.id}">${e.nombres} ${e.apellidos}</option>`).join('')}
+      </select></div>
+    <div class="form-group"><label class="field-label required">Fecha</label><input type="date" id="san-fecha" value="${new Date().toISOString().slice(0,10)}"></div>
+    <div class="form-group"><label class="field-label required">Tipo de Sanción</label>
+      <select id="san-tipo"><option>Amonestación</option><option>Suspensión</option><option>Multa</option><option>Despido</option></select></div>
+    <div class="form-group full"><label class="field-label required">Motivo detallado</label><textarea id="san-motivo" placeholder="Describa el motivo..."></textarea></div>
+    <div class="form-group full"><label class="field-label">Adjuntar Documento PDF</label>
+      <div class="file-drop" onclick="document.getElementById('san-pdf').click()">
+        <div class="file-icon">📎</div><p>Clic para adjuntar documento (opcional)</p>
+        <input type="file" id="san-pdf" accept="application/pdf" style="display:none" onchange="previewFile(this,'san-pdf-name')">
+        <span id="san-pdf-name" class="text-muted" style="font-size:13px"></span>
+      </div></div>
+  </div>`;
+  openModal('⚠️ Registrar Sanción', body,
+    `<button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+     <button class="btn btn-danger" onclick="guardarSancion()">Registrar</button>`);
+}
+
+async function guardarSancion() {
+  const empId = document.getElementById('san-emp').value;
+  const fecha = document.getElementById('san-fecha').value;
+  const tipo = document.getElementById('san-tipo').value;
+  const motivo = document.getElementById('san-motivo').value.trim();
+  if (!empId || !fecha || !motivo) { showToast('Complete todos los campos', 'warning'); return; }
+  const san = { id:'S'+uid(), empleadoId:empId, fecha, tipo, motivo, docPDF:null };
+  const pdfInput = document.getElementById('san-pdf');
+  if (pdfInput.files[0]) {
+    try { san.docPDF = await fileToBase64(pdfInput.files[0]); } catch(e){}
+  }
+  STATE.sanciones.push(san);
+  const emp = STATE.empleados.find(e=>e.id===empId);
+  saveState();
+  addAuditLog('SANCION', `Sanción (${tipo}) a ${emp.nombres} ${emp.apellidos}: ${motivo}`);
+  showToast('Sanción registrada', 'warning');
+  closeModal();
+  renderSanciones(document.getElementById('app-content'));
+}
+
+function eliminarSancion(id) {
+  confirmAction('¿Eliminar esta sanción? Esta acción quedará registrada en auditoría.', function(){
+    const idx = STATE.sanciones.findIndex(s=>s.id===id);
+    if (idx>-1) { STATE.sanciones.splice(idx,1); saveState(); addAuditLog('ELIMINAR_SANCION','Sanción eliminada por Admin'); showToast('Sanción eliminada','info'); renderSanciones(document.getElementById('app-content')); }
+  });
+}
+
+function exportSanciones() {
+  const data = STATE.sanciones.map(s=>{
+    const e=STATE.empleados.find(x=>x.id===s.empleadoId);
+    return {Empleado:e?`${e.nombres} ${e.apellidos}`:'—', Fecha:fmtDate(s.fecha), Tipo:s.tipo, Motivo:s.motivo};
+  });
+  exportToExcel(data,'Sanciones_LaCatedral');
+  showToast('Exportado','success');
+}
+
+// ============================================================
+// NÓMINA
+// ============================================================
+function renderNomina(container) {
+  const now = new Date();
+  const mes = now.getMonth()+1, ano = now.getFullYear();
+  document.getElementById('topbar-actions').innerHTML = `<button class="btn btn-secondary btn-sm" onclick="exportNominaActual()">⬇️ Exportar</button>`;
+  container.innerHTML = `
+    <div class="tabs">
+      <div class="tab active" onclick="switchNominaTab('nueva',this)">📋 Nómina del Mes</div>
+      <div class="tab" onclick="switchNominaTab('historico',this)">📚 Histórico</div>
+    </div>
+    <div id="nomina-nueva">
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-body" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+          <div class="form-group"><label class="field-label">Mes</label>
+            <select id="nom-mes">${[1,2,3,4,5,6,7,8,9,10,11,12].map(m=>`<option value="${m}" ${m===mes?'selected':''}>${new Date(2000,m-1).toLocaleString('es-ES',{month:'long'})}</option>`).join('')}</select></div>
+          <div class="form-group"><label class="field-label">Año</label>
+            <input type="number" id="nom-ano" value="${ano}" style="width:100px"></div>
+          <button class="btn btn-primary" onclick="cargarNomina()">🔄 Cargar / Actualizar</button>
+        </div>
+      </div>
+      <div id="nomina-content"></div>
+    </div>
+    <div id="nomina-historico" style="display:none">
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Período</th><th>Estado</th><th>Total Devengado</th><th>Empleados</th><th>Acciones</th></tr></thead>
+            <tbody id="hist-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>`;
+  cargarNomina();
+}
+
+function switchNominaTab(tab, el) {
+  document.querySelectorAll('.tabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('nomina-nueva').style.display = tab==='nueva'?'block':'none';
+  document.getElementById('nomina-historico').style.display = tab==='historico'?'block':'none';
+  if (tab==='historico') renderHistoricoNominas();
+}
+
+function renderHistoricoNominas() {
+  const tbody = document.getElementById('hist-tbody');
+  if (!tbody) return;
+  if (!STATE.nominas.length) { tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted" style="padding:40px">No hay nóminas guardadas</td></tr>`; return; }
+  tbody.innerHTML = STATE.nominas.slice().reverse().map(n=>`<tr>
+    <td><b>${n.mesNombre} ${n.ano}</b></td>
+    <td><span class="badge badge-${n.estado==='aprobada'?'approved':n.estado==='pendiente'?'pending':'draft'}">${n.estado}</span></td>
+    <td>${fmtMoney(n.totalDevengado)}</td>
+    <td>${n.lineas?n.lineas.length:0} empleados</td>
+    <td>
+      <button class="btn btn-secondary btn-xs" onclick="verDetalleNomina('${n.id}')">👁️ Ver</button>
+      ${currentRole==='admin'&&n.estado==='aprobada'?`<button class="btn btn-warning btn-xs" onclick="reabrirNomina('${n.id}')">🔓 Reabrir</button>`:''}
+      ${currentRole==='admin'&&n.estado==='pendiente'?`<button class="btn btn-success btn-xs" onclick="aprobarNomina('${n.id}')">✅ Aprobar</button>`:''}
+    </td>
+  </tr>`).join('');
+}
+
+function cargarNomina() {
+  const mes = parseInt(document.getElementById('nom-mes').value);
+  const ano = parseInt(document.getElementById('nom-ano').value);
+  const mesNombre = new Date(ano,mes-1).toLocaleString('es-ES',{month:'long'});
+  const periodoKey = `${ano}-${String(mes).padStart(2,'0')}`;
+
+  let nomina = STATE.nominas.find(n=>n.periodo===periodoKey);
+  const canEdit = currentRole==='contabilidad'||currentRole==='admin';
+  const isReadOnly = nomina && nomina.estado==='aprobada' && currentRole!=='admin';
+
+  const activos = getEmpleadosActivos();
+  if (!nomina) {
+    nomina = { id:'N'+uid(), periodo:periodoKey, mes, ano, mesNombre, estado:'borrador', lineas:[], totalDevengado:0 };
+    activos.forEach(e=>{
+      nomina.lineas.push({
+        empleadoId: e.id, diasTrabajados: e.jornada||24, horasExtras: 0
+      });
+    });
+    STATE.nominas.push(nomina);
+    saveState();
+  } else {
+    // Add new employees if missing
+    activos.forEach(e=>{
+      if (!nomina.lineas.find(l=>l.empleadoId===e.id)){
+        nomina.lineas.push({ empleadoId:e.id, diasTrabajados:e.jornada||24, horasExtras:0 });
+      }
+    });
+    saveState();
+  }
+
+  let html = `<div class="card">
+    <div class="card-header">
+      <h3>Nómina: ${mesNombre} ${ano}</h3>
+      <span class="badge badge-${nomina.estado==='aprobada'?'approved':nomina.estado==='pendiente'?'pending':'draft'}">${nomina.estado}</span>
+    </div>
+    <div class="table-wrap">
+      <table class="nomina-table">
+        <thead><tr>
+          <th>Empleado</th><th>Dpto</th><th>Jornada</th>
+          <th data-tip="Salario base mensual asignado por Administración">Sal. Base</th>
+          <th data-tip="Salario Base ÷ Jornada contratada">Sal. Diario</th>
+          <th data-tip="Bonificación automática por antigüedad">Bonif.</th>
+          <th data-tip="Días efectivamente trabajados en el mes">Días Trab.</th>
+          <th data-tip="Horas trabajadas fuera de jornada">H. Extras</th>
+          <th data-tip="(Sal.Diario ÷ 8) × 1.${STATE.config.recargoHorasExtras||50}">Val. H.E</th>
+          <th data-tip="Incidencias del mes registradas">Incidencias</th>
+          <th data-tip="Total devengado en el período">Total</th>
+        </tr></thead>
+        <tbody>`;
+
+  nomina.lineas.forEach(l=>{
+    const e = STATE.empleados.find(x=>x.id===l.empleadoId);
+    if (!e) return;
+    const salBase = e.salarioBase || 0;
+    const jornadaC = e.jornada || 24;
+    const salDiario = salBase / jornadaC;
+    const bon = calcBonificacion(salBase, e.fechaAlta);
+    const bPct = getBonificacionPct(e.fechaAlta);
+    const recargo = 1 + (STATE.config.recargoHorasExtras/100);
+    const valHE = (salDiario / 8) * recargo;
+
+    // Incidencias del período
+    const incMes = STATE.incidencias.filter(i=>i.empleadoId===e.id && i.periodo===periodoKey);
+    const incLabel = incMes.map(i=>i.tipo).join(', ')||'—';
+
+    // Days paid (vacation bonus)
+    let diasPagados = l.diasTrabajados;
+    const vacInc = incMes.filter(i=>i.tipo==='Vacaciones');
+    vacInc.forEach(v=>{ diasPagados += STATE.config.diasPagadosPeriodo - parseInt(v.diasAfectados||0); });
+
+    const total = (salDiario * diasPagados) + bon + (l.horasExtras * valHE);
+    l.totalDevengado = total;
+
+    html += `<tr>
+      <td><b>${e.nombres} ${e.apellidos}</b></td>
+      <td><span class="chip">${e.departamento}</span></td>
+      <td>${jornadaC}d</td>
+      <td>${fmtMoney(salBase)}</td>
+      <td>${fmtMoney(salDiario)}</td>
+      <td>${bPct?fmtMoney(bon)+'<small>('+bPct+'%)</small>':'—'}</td>
+      <td>${!isReadOnly&&canEdit?`<input type="number" id="dt-${e.id}" value="${l.diasTrabajados}" min="0" max="${jornadaC}" onchange="updateNominaLine('${nomina.id}','${e.id}')">`:l.diasTrabajados}</td>
+      <td>${!isReadOnly&&canEdit?`<input type="number" id="he-${e.id}" value="${l.horasExtras||0}" min="0" onchange="updateNominaLine('${nomina.id}','${e.id}')">`:l.horasExtras||0}</td>
+      <td>${fmtMoney(valHE)}</td>
+      <td><small>${incLabel}</small></td>
+      <td id="tot-${e.id}"><b>${fmtMoney(total)}</b></td>
+    </tr>`;
+  });
+
+  const totalGeneral = nomina.lineas.reduce((s,l)=>s+(l.totalDevengado||0),0);
+  nomina.totalDevengado = totalGeneral;
+  saveState();
+
+  html += `<tr class="nomina-total-row">
+    <td colspan="10" class="text-right"><b>TOTAL GENERAL:</b></td>
+    <td id="nom-total-general"><b>${fmtMoney(totalGeneral)}</b></td>
+  </tr>`;
+  html += `</tbody></table></div>`;
+
+  if (canEdit && !isReadOnly) {
+    html += `<div class="card-footer" style="display:flex;gap:10px;justify-content:flex-end">
+      ${nomina.estado==='borrador'?`<button class="btn btn-gold" onclick="calcularNomina('${nomina.id}')">🧮 Calcular</button>
+        <button class="btn btn-primary" onclick="solicitarAprobacion('${nomina.id}')">📤 Solicitar Aprobación</button>`:''}
+      ${nomina.estado==='pendiente'&&currentRole==='admin'?`<button class="btn btn-success" onclick="aprobarNomina('${nomina.id}')">✅ Aprobar Nómina</button>`:''}
+    </div>`;
+  }
+  html += `</div>`;
+
+  document.getElementById('nomina-content').innerHTML = html;
+}
+
+function updateNominaLine(nomId, empId) {
+  const nomina = STATE.nominas.find(n=>n.id===nomId);
+  if (!nomina) return;
+  const linea = nomina.lineas.find(l=>l.empleadoId===empId);
+  const e = STATE.empleados.find(x=>x.id===empId);
+  if (!linea || !e) return;
+  const dtEl = document.getElementById('dt-'+empId);
+  const heEl = document.getElementById('he-'+empId);
+  if (dtEl) linea.diasTrabajados = parseFloat(dtEl.value)||0;
+  if (heEl) linea.horasExtras = parseFloat(heEl.value)||0;
+
+  const salBase = e.salarioBase||0;
+  const jornadaC = e.jornada||24;
+  const salDiario = salBase/jornadaC;
+  const bon = calcBonificacion(salBase,e.fechaAlta);
+  const recargo = 1+(STATE.config.recargoHorasExtras/100);
+  const valHE = (salDiario/8)*recargo;
+
+  const periodoKey = nomina.periodo;
+  const incMes = STATE.incidencias.filter(i=>i.empleadoId===empId && i.periodo===periodoKey);
+  let diasPagados = linea.diasTrabajados;
+  const vacInc = incMes.filter(i=>i.tipo==='Vacaciones');
+  vacInc.forEach(v=>{ diasPagados += STATE.config.diasPagadosPeriodo - parseInt(v.diasAfectados||0); });
+
+  linea.totalDevengado = (salDiario*diasPagados)+bon+(linea.horasExtras*valHE);
+  saveState();
+  const totEl = document.getElementById('tot-'+empId);
+  if (totEl) totEl.innerHTML = `<b>${fmtMoney(linea.totalDevengado)}</b>`;
+  const totalGeneral = nomina.lineas.reduce((s,l)=>s+(l.totalDevengado||0),0);
+  nomina.totalDevengado = totalGeneral;
+  const tgEl = document.getElementById('nom-total-general');
+  if (tgEl) tgEl.innerHTML = `<b>${fmtMoney(totalGeneral)}</b>`;
+  saveState();
+}
+
+function calcularNomina(nomId) {
+  const nomina = STATE.nominas.find(n=>n.id===nomId);
+  if (!nomina) return;
+  nomina.lineas.forEach(l=>updateNominaLine(nomId,l.empleadoId));
+  showToast('Nómina calculada', 'success');
+}
+
+function solicitarAprobacion(nomId) {
+  const nomina = STATE.nominas.find(n=>n.id===nomId);
+  if (!nomina) return;
+  confirmAction('¿Enviar nómina a revisión de Administración?', function(){
+    nomina.estado = 'pendiente'; saveState();
+    addAuditLog('NOMINA_PENDIENTE',`Nómina ${nomina.mesNombre} ${nomina.ano} enviada a aprobación`);
+    showToast('Nómina enviada a aprobación','info');
+    cargarNomina();
+  });
+}
+
+function aprobarNomina(nomId) {
+  const nomina = STATE.nominas.find(n=>n.id===nomId);
+  if (!nomina) return;
+  confirmAction('¿Aprobar y cerrar esta nómina? No podrá editarse sin reabrirla.', function(){
+    nomina.estado = 'aprobada'; nomina.fechaAprobacion = new Date().toISOString();
+    saveState();
+    addAuditLog('NOMINA_APROBADA',`Nómina ${nomina.mesNombre} ${nomina.ano} aprobada. Total: ${fmtMoney(nomina.totalDevengado)}`);
+    showToast('Nómina aprobada y cerrada','success');
+    renderHistoricoNominas();
+  });
+}
+
+function reabrirNomina(nomId) {
+  const nomina = STATE.nominas.find(n=>n.id===nomId);
+  openModal('🔓 Reabrir Nómina',
+    `<div class="form-group"><label class="field-label required">Motivo de reapertura</label>
+      <textarea id="reabrir-motivo" placeholder="Indique el motivo..."></textarea></div>`,
+    `<button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+     <button class="btn btn-danger" onclick="confirmarReopenNomina('${nomId}')">🔓 Reabrir</button>`,'sm');
+}
+
+function confirmarReopenNomina(nomId) {
+  const motivo = document.getElementById('reabrir-motivo').value.trim();
+  if (!motivo) { showToast('El motivo es obligatorio','warning'); return; }
+  const nomina = STATE.nominas.find(n=>n.id===nomId);
+  nomina.estado = 'borrador'; saveState();
+  addAuditLog('NOMINA_REABIERTA',`Nómina ${nomina.mesNombre} ${nomina.ano} reabierta. Motivo: ${motivo}`);
+  showToast('Nómina reabierta para edición','warning');
+  closeModal();
+  renderHistoricoNominas();
+}
+
+function verDetalleNomina(nomId) {
+  const nomina = STATE.nominas.find(n=>n.id===nomId);
+  if (!nomina) return;
+  let body = `<p><b>Período:</b> ${nomina.mesNombre} ${nomina.ano} | <b>Estado:</b> <span class="badge badge-${nomina.estado}">${nomina.estado}</span></p>
+  <p><b>Total Devengado:</b> <span style="font-size:20px;color:var(--burgundy)">${fmtMoney(nomina.totalDevengado)}</span></p>
+  <div class="divider"></div>
+  <div class="table-wrap"><table><thead><tr><th>Empleado</th><th>Días</th><th>H.Ext</th><th>Total</th></tr></thead><tbody>
+  ${nomina.lineas.map(l=>{const e=STATE.empleados.find(x=>x.id===l.empleadoId);return`<tr><td>${e?`${e.nombres} ${e.apellidos}`:'—'}</td><td>${l.diasTrabajados}</td><td>${l.horasExtras||0}</td><td>${fmtMoney(l.totalDevengado)}</td></tr>`;}).join('')}
+  </tbody></table></div>`;
+  openModal(`Nómina: ${nomina.mesNombre} ${nomina.ano}`, body, `<button class="btn btn-secondary" onclick="closeModal()">Cerrar</button><button class="btn btn-gold btn-sm" onclick="exportNomina('${nomId}')">⬇️ Excel</button>`, 'lg');
+}
+
+function exportNomina(nomId) {
+  const nomina = STATE.nominas.find(n=>n.id===nomId);
+  if (!nomina) return;
+  const data = nomina.lineas.map(l=>{
+    const e = STATE.empleados.find(x=>x.id===l.empleadoId);
+    return { Empleado:e?`${e.nombres} ${e.apellidos}`:'—', Departamento:e?.departamento||'—', 'Días Trabajados':l.diasTrabajados, 'Horas Extras':l.horasExtras||0, 'Total Devengado':l.totalDevengado||0 };
+  });
+  exportToExcel(data, `Nomina_${nomina.mesNombre}_${nomina.ano}`);
+  showToast('Exportado','success');
+}
+
+function exportNominaActual() {
+  const mes = parseInt(document.getElementById('nom-mes')?.value||new Date().getMonth()+1);
+  const ano = parseInt(document.getElementById('nom-ano')?.value||new Date().getFullYear());
+  const periodoKey = `${ano}-${String(mes).padStart(2,'0')}`;
+  const nomina = STATE.nominas.find(n=>n.periodo===periodoKey);
+  if (nomina) exportNomina(nomina.id);
+  else showToast('No hay nómina cargada', 'warning');
+}
+
+// ============================================================
+// INCIDENCIAS
+// ============================================================
+function renderIncidencias(container) {
+  const canAdd = currentRole==='contabilidad'||currentRole==='admin';
+  document.getElementById('topbar-actions').innerHTML = canAdd?`<button class="btn btn-primary btn-sm" onclick="openModalIncidencia()">➕ Nueva Incidencia</button>`:'';
+  container.innerHTML = `
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Empleado</th><th>Período</th><th>Tipo</th><th>Inicio</th><th>Fin</th><th>Días</th><th>Impacto Nómina</th>${currentRole==='admin'?'<th>Eliminar</th>':''}</tr></thead>
+          <tbody>${STATE.incidencias.length?STATE.incidencias.slice().reverse().map(i=>{
+            const e=STATE.empleados.find(x=>x.id===i.empleadoId);
+            const impacto = i.tipo==='Permiso no retribuido'||i.tipo==='Ausencia injustificada'?'⬇️ Descuenta días':'ℹ️ Sin descuento';
+            return `<tr>
+              <td>${e?`${e.nombres} ${e.apellidos}`:'—'}</td>
+              <td>${i.periodo||'—'}</td>
+              <td><span class="badge badge-info">${i.tipo}</span></td>
+              <td>${fmtDate(i.fechaInicio)}</td><td>${fmtDate(i.fechaFin)}</td>
+              <td><b>${i.diasAfectados}</b></td>
+              <td><small>${impacto}</small></td>
+              ${currentRole==='admin'?`<td><button class="btn btn-danger btn-xs" onclick="eliminarIncidencia('${i.id}')">🗑️</button></td>`:''}
+            </tr>`;
+          }).join('') : `<tr><td colspan="8" class="text-center text-muted" style="padding:40px">No hay incidencias registradas</td></tr>`}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function openModalIncidencia() {
+  const activos = getEmpleadosActivos();
+  const tipos = ['Baja médica','Permiso retribuido','Permiso no retribuido','Ausencia injustificada','Vacaciones'];
+  const impactoInfo = {
+    'Baja médica':'Sin descuento en días trabajados (registro de control)',
+    'Permiso retribuido':'Sin descuento en días trabajados',
+    'Permiso no retribuido':'Descuenta días trabajados',
+    'Ausencia injustificada':'Descuenta días trabajados',
+    'Vacaciones':'Se aplicará bonificación de 15 días pagados por cada 7 días de descanso'
+  };
+  let body = `<div class="form-grid">
+    <div class="form-group full"><label class="field-label required">Empleado</label>
+      <select id="inc-emp"><option value="">Seleccione...</option>
+        ${activos.map(e=>`<option value="${e.id}">${e.nombres} ${e.apellidos}</option>`).join('')}
+      </select></div>
+    <div class="form-group"><label class="field-label required">Tipo</label>
+      <select id="inc-tipo" onchange="updateImpactoInfo()">${tipos.map(t=>`<option>${t}</option>`).join('')}</select></div>
+    <div class="form-group"><label class="field-label required" data-tip="Año y mes para asociar a la nómina">Período (Año-Mes)</label>
+      <input type="month" id="inc-periodo" value="${new Date().toISOString().slice(0,7)}"></div>
+    <div class="form-group"><label class="field-label required">Fecha Inicio</label><input type="date" id="inc-inicio" onchange="calcDiasInc()"></div>
+    <div class="form-group"><label class="field-label required">Fecha Fin</label><input type="date" id="inc-fin" onchange="calcDiasInc()"></div>
+    <div class="form-group"><label class="field-label" data-tip="Calculado automáticamente">Días Afectados</label><input type="number" id="inc-dias" readonly></div>
+    <div class="form-group full" id="inc-impacto-info"><div class="input-hint">ℹ️ Seleccione el tipo de incidencia</div></div>
+  </div>`;
+  openModal('📅 Registrar Incidencia', body,
+    `<button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+     <button class="btn btn-primary" onclick="guardarIncidencia()">Guardar</button>`);
+  setTimeout(() => updateImpactoInfo(), 100);
+}
+
+function updateImpactoInfo() {
+  const tipo = document.getElementById('inc-tipo')?.value;
+  const info = { 'Baja médica':'Sin descuento en días trabajados', 'Permiso retribuido':'Sin descuento en días trabajados', 'Permiso no retribuido':'Descuenta días de nómina', 'Ausencia injustificada':'Descuenta días de nómina', 'Vacaciones':'Suma 15 días pagados por cada 7 días de descanso registrados' };
+  const div = document.getElementById('inc-impacto-info');
+  if (div && tipo) div.innerHTML = `<div class="input-hint">ℹ️ ${info[tipo]||''}</div>`;
+}
+
+function calcDiasInc() {
+  const inicio = document.getElementById('inc-inicio')?.value;
+  const fin = document.getElementById('inc-fin')?.value;
+  const diasEl = document.getElementById('inc-dias');
+  if (!inicio || !fin || !diasEl) return;
+  const diff = (new Date(fin)-new Date(inicio))/(1000*60*60*24)+1;
+  diasEl.value = diff > 0 ? diff : 0;
+}
+
+function guardarIncidencia() {
+  const empId = document.getElementById('inc-emp').value;
+  const tipo = document.getElementById('inc-tipo').value;
+  const periodo = document.getElementById('inc-periodo').value;
+  const fechaInicio = document.getElementById('inc-inicio').value;
+  const fechaFin = document.getElementById('inc-fin').value;
+  const diasAfectados = parseInt(document.getElementById('inc-dias').value)||0;
+  if (!empId||!fechaInicio||!fechaFin||!periodo) { showToast('Complete todos los campos','warning'); return; }
+  if (diasAfectados <= 0) { showToast('Las fechas deben generar al menos 1 día','warning'); return; }
+
+  const inc = { id:'I'+uid(), empleadoId:empId, tipo, periodo, fechaInicio, fechaFin, diasAfectados };
+
+  // Si es permiso no retribuido o ausencia, actualizar días trabajados en nómina
+  if (tipo==='Permiso no retribuido'||tipo==='Ausencia injustificada') {
+    const nomina = STATE.nominas.find(n=>n.periodo===periodo);
+    if (nomina) {
+      const linea = nomina.lineas.find(l=>l.empleadoId===empId);
+      if (linea) { linea.diasTrabajados = Math.max(0, linea.diasTrabajados - diasAfectados); }
+    }
+  }
+
+  // Control vacaciones
+  if (tipo==='Vacaciones') {
+    let ctrl = STATE.vacacionesControl.find(v=>v.empleadoId===empId && v.ano===new Date(fechaInicio).getFullYear());
+    if (!ctrl) { ctrl = { empleadoId:empId, ano:new Date(fechaInicio).getFullYear(), diasTomados:0 }; STATE.vacacionesControl.push(ctrl); }
+    ctrl.diasTomados += diasAfectados;
+  }
+
+  STATE.incidencias.push(inc);
+  saveState();
+  const emp = STATE.empleados.find(e=>e.id===empId);
+  addAuditLog('INCIDENCIA',`Incidencia (${tipo}) para ${emp.nombres} ${emp.apellidos}: ${diasAfectados} días`);
+  showToast('Incidencia registrada','success');
+  closeModal();
+  renderIncidencias(document.getElementById('app-content'));
+}
+
+function eliminarIncidencia(id) {
+  confirmAction('¿Eliminar esta incidencia? Esta acción queda en auditoría.', function(){
+    const idx = STATE.incidencias.findIndex(i=>i.id===id);
+    if (idx>-1) { STATE.incidencias.splice(idx,1); saveState(); addAuditLog('ELIMINAR_INCIDENCIA','Incidencia eliminada por Admin'); showToast('Incidencia eliminada','info'); renderIncidencias(document.getElementById('app-content')); }
+  });
+}
+
+// ============================================================
+// VACACIONES
+// ============================================================
+function renderVacaciones(container) {
+  document.getElementById('topbar-actions').innerHTML = `<button class="btn btn-secondary btn-sm" onclick="exportVacaciones()">⬇️ Excel</button>`;
+  const activos = getEmpleadosActivos();
+  const anoActual = new Date().getFullYear();
+  container.innerHTML = `
+    <div class="card">
+      <div class="card-header"><h3>🌴 Submayor de Vacaciones ${anoActual}</h3>
+        <span class="text-muted" style="font-size:13px">Derecho anual: ${STATE.config.diasVacaciones} días | Pagados por período: ${STATE.config.diasPagadosPeriodo} días</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Empleado</th><th>Dpto</th><th>Derecho Anual</th><th>Días Tomados</th><th>Días Pendientes</th><th>Valor Monetario Pendiente</th><th>Progreso</th></tr></thead>
+          <tbody>${activos.map(e=>{
+            const ctrl = STATE.vacacionesControl.find(v=>v.empleadoId===e.id&&v.ano===anoActual);
+            const tomados = ctrl?.diasTomados||0;
+            const pendientes = Math.max(0, STATE.config.diasVacaciones - tomados);
+            const salDiario = (e.salarioBase||0)/(e.jornada||24);
+            const valPend = salDiario * pendientes;
+            const pct = Math.min(100, (tomados/STATE.config.diasVacaciones)*100);
+            return `<tr>
+              <td><b>${e.nombres} ${e.apellidos}</b></td>
+              <td>${e.departamento}</td>
+              <td>${STATE.config.diasVacaciones} días</td>
+              <td>${tomados}</td>
+              <td><b style="color:var(--burgundy)">${pendientes}</b></td>
+              <td>${fmtMoney(valPend)}</td>
+              <td><div class="progress-bar-wrap" style="min-width:80px"><div class="progress-bar" style="width:${pct}%"></div></div><small>${pct.toFixed(0)}%</small></td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function exportVacaciones() {
+  const activos = getEmpleadosActivos();
+  const anoActual = new Date().getFullYear();
+  const data = activos.map(e=>{
+    const ctrl = STATE.vacacionesControl.find(v=>v.empleadoId===e.id&&v.ano===anoActual);
+    const tomados = ctrl?.diasTomados||0;
+    const pendientes = Math.max(0, STATE.config.diasVacaciones-tomados);
+    const salDiario = (e.salarioBase||0)/(e.jornada||24);
+    return { Empleado:`${e.nombres} ${e.apellidos}`, Departamento:e.departamento, 'Derecho Anual':STATE.config.diasVacaciones, 'Días Tomados':tomados, 'Días Pendientes':pendientes, 'Valor Pendiente':salDiario*pendientes };
+  });
+  exportToExcel(data, `Vacaciones_${anoActual}`);
+  showToast('Exportado','success');
+}
+
+// ============================================================
+// CONFIGURACIÓN
+// ============================================================
+function renderConfiguracion(container) {
+  if (currentRole !== 'admin') { container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔒</div><h4>Solo Administración</h4></div>'; return; }
+  const cfg = STATE.config;
+  container.innerHTML = `
+    <div class="card">
+      <div class="card-header"><h3>⚙️ Configuración General</h3></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="form-section-title">🔐 Gestión de PINs</div>
+          <div class="form-group"><label class="field-label">PIN RRHH</label>
+            <div style="display:flex;gap:8px"><input type="password" id="cfg-pin-rrhh" value="${cfg.pins.rrhh}" maxlength="4" style="font-family:monospace;letter-spacing:4px" autocomplete="new-password">
+            <button class="btn btn-secondary btn-sm" onclick="togglePinVis('cfg-pin-rrhh',this)">👁️</button></div>
+            <div class="input-hint">PIN actual de RRHH (4 dígitos)</div></div>
+          <div class="form-group"><label class="field-label">PIN Jurídico</label>
+            <div style="display:flex;gap:8px"><input type="password" id="cfg-pin-jur" value="${cfg.pins.juridico}" maxlength="4" style="font-family:monospace;letter-spacing:4px" autocomplete="new-password">
+            <button class="btn btn-secondary btn-sm" onclick="togglePinVis('cfg-pin-jur',this)">👁️</button></div></div>
+          <div class="form-group"><label class="field-label">PIN Contabilidad</label>
+            <div style="display:flex;gap:8px"><input type="password" id="cfg-pin-cont" value="${cfg.pins.contabilidad}" maxlength="4" style="font-family:monospace;letter-spacing:4px" autocomplete="new-password">
+            <button class="btn btn-secondary btn-sm" onclick="togglePinVis('cfg-pin-cont',this)">👁️</button></div></div>
+          <div class="form-group"><label class="field-label" data-tip="El PIN de Administración es fijo y no editable">PIN Admin (fijo)</label>
+            <input type="text" value="****" readonly style="color:var(--text-light)">
+            <div class="input-hint">PIN 1059 — no editable por diseño</div></div>
+
+          <div class="form-section-title">💰 Bonificación por Antigüedad</div>
+          <div class="form-group"><label class="field-label" data-tip="Mínimo de años para el primer nivel de bonificación">Años para nivel 1 (5%)</label>
+            <input type="number" id="cfg-bon-anos1" value="${cfg.bonificacion.anios1}" min="1"></div>
+          <div class="form-group"><label class="field-label">Porcentaje nivel 1 (%)</label>
+            <input type="number" id="cfg-bon-pct1" value="${cfg.bonificacion.nivel1}" min="0" max="100"></div>
+          <div class="form-group"><label class="field-label" data-tip="Mínimo de años para el segundo nivel de bonificación">Años para nivel 2 (10%)</label>
+            <input type="number" id="cfg-bon-anos2" value="${cfg.bonificacion.anios2}" min="1"></div>
+          <div class="form-group"><label class="field-label">Porcentaje nivel 2 (%)</label>
+            <input type="number" id="cfg-bon-pct2" value="${cfg.bonificacion.nivel2}" min="0" max="100"></div>
+
+          <div class="form-section-title">⏱️ Horas Extras y Vacaciones</div>
+          <div class="form-group"><label class="field-label" data-tip="Porcentaje de recargo sobre hora ordinaria para horas extras">Recargo Horas Extras (%)</label>
+            <input type="number" id="cfg-recargo" value="${cfg.recargoHorasExtras}" min="0" max="200"></div>
+          <div class="form-group"><label class="field-label" data-tip="Días de vacaciones anuales a los que tiene derecho cada empleado">Días de Vacaciones/Año</label>
+            <input type="number" id="cfg-vac-dias" value="${cfg.diasVacaciones}" min="1"></div>
+          <div class="form-group"><label class="field-label" data-tip="Días que se pagan por cada período vacacional tomado">Días Pagados/Período</label>
+            <input type="number" id="cfg-vac-pag" value="${cfg.diasPagadosPeriodo}" min="1"></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="guardarConfiguracion()">💾 Guardar Configuración</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function togglePinVis(id, btn) {
+  const input = document.getElementById(id);
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
+  else { input.type = 'password'; btn.textContent = '👁️'; }
+}
+
+function guardarConfiguracion() {
+  const pinRrhh = document.getElementById('cfg-pin-rrhh').value.trim();
+  const pinJur = document.getElementById('cfg-pin-jur').value.trim();
+  const pinCont = document.getElementById('cfg-pin-cont').value.trim();
+  if ([pinRrhh,pinJur,pinCont].some(p=>!/^\d{4}$/.test(p))) { showToast('Todos los PINs deben tener exactamente 4 dígitos numéricos','error'); return; }
+  if ([pinRrhh,pinJur,pinCont].includes(STATE.config.adminPin)) { showToast('Un PIN no puede ser igual al PIN de Administración','error'); return; }
+  STATE.config.pins.rrhh = pinRrhh;
+  STATE.config.pins.juridico = pinJur;
+  STATE.config.pins.contabilidad = pinCont;
+  STATE.config.bonificacion.anios1 = parseInt(document.getElementById('cfg-bon-anos1').value)||5;
+  STATE.config.bonificacion.nivel1 = parseInt(document.getElementById('cfg-bon-pct1').value)||5;
+  STATE.config.bonificacion.anios2 = parseInt(document.getElementById('cfg-bon-anos2').value)||10;
+  STATE.config.bonificacion.nivel2 = parseInt(document.getElementById('cfg-bon-pct2').value)||10;
+  STATE.config.recargoHorasExtras = parseFloat(document.getElementById('cfg-recargo').value)||50;
+  STATE.config.diasVacaciones = parseInt(document.getElementById('cfg-vac-dias').value)||14;
+  STATE.config.diasPagadosPeriodo = parseInt(document.getElementById('cfg-vac-pag').value)||15;
+  saveState();
+  addAuditLog('CONFIG','Configuración general actualizada por Admin');
+  showToast('Configuración guardada','success');
+}
+
+// ============================================================
+// AUDITORÍA
+// ============================================================
+function renderAuditoria(container) {
+  if (currentRole !== 'admin') { container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔒</div><h4>Solo Administración</h4></div>'; return; }
+  document.getElementById('topbar-actions').innerHTML = `<button class="btn btn-secondary btn-sm" onclick="exportAuditoria()">⬇️ Exportar</button>`;
+  container.innerHTML = `
+    <div class="card">
+      <div class="filters-bar">
+        <input type="text" id="aud-q" placeholder="🔍 Buscar en auditoría..." style="min-width:260px" oninput="filtrarAuditoria()">
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Fecha y Hora</th><th>Rol</th><th>Tipo</th><th>Detalle</th></tr></thead>
+          <tbody id="aud-tbody">${renderAuditoriaRows(STATE.auditLog)}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function renderAuditoriaRows(logs) {
+  if (!logs.length) return `<tr><td colspan="4" class="text-center text-muted" style="padding:40px">Sin registros</td></tr>`;
+  return logs.slice(0,200).map(l=>`<tr class="audit-row">
+    <td><code style="font-size:12px">${new Date(l.fecha).toLocaleString('es-ES')}</code></td>
+    <td><span class="badge badge-info">${l.rol}</span></td>
+    <td><span class="chip">${l.tipo}</span></td>
+    <td>${l.detalle}</td>
+  </tr>`).join('');
+}
+
+function filtrarAuditoria() {
+  const q = document.getElementById('aud-q').value.toLowerCase();
+  const filtered = STATE.auditLog.filter(l=>
+    l.tipo.toLowerCase().includes(q)||l.detalle.toLowerCase().includes(q)||l.rol.toLowerCase().includes(q)
+  );
+  document.getElementById('aud-tbody').innerHTML = renderAuditoriaRows(filtered);
+}
+
+function exportAuditoria() {
+  const data = STATE.auditLog.map(l=>({Fecha:new Date(l.fecha).toLocaleString('es-ES'),Rol:l.rol,Tipo:l.tipo,Detalle:l.detalle}));
+  exportToExcel(data,'AuditoriaLog_LaCatedral');
+  showToast('Exportado','success');
+}
+
+// ============================================================
+// BACKUP
+// ============================================================
+function renderBackup(container) {
+  if (currentRole !== 'admin') { container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔒</div><h4>Solo Administración</h4></div>'; return; }
+  const stats = {
+    empleados: STATE.empleados.length,
+    nominas: STATE.nominas.length,
+    sanciones: STATE.sanciones.length,
+    auditLog: STATE.auditLog.length
+  };
+  container.innerHTML = `
+    <div class="card" style="max-width:600px">
+      <div class="card-header"><h3>💾 Copia de Seguridad</h3></div>
+      <div class="card-body">
+        <p style="color:var(--text-mid);margin-bottom:20px">Gestione las copias de seguridad del sistema. Los datos incluyen empleados, nóminas, contratos, sanciones, logs y toda la configuración.</p>
+        <div class="stats-grid" style="margin-bottom:24px">
+          <div class="stat-card"><div class="stat-value">${stats.empleados}</div><div class="stat-label">Empleados</div></div>
+          <div class="stat-card"><div class="stat-value">${stats.nominas}</div><div class="stat-label">Nóminas</div></div>
+          <div class="stat-card"><div class="stat-value">${stats.sanciones}</div><div class="stat-label">Sanciones</div></div>
+          <div class="stat-card"><div class="stat-value">${stats.auditLog}</div><div class="stat-label">Logs</div></div>
+        </div>
+        <div class="divider"></div>
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div>
+            <h4 style="margin-bottom:8px;color:var(--burgundy)">⬇️ Exportar Copia de Seguridad</h4>
+            <p class="text-muted">Descarga todos los datos en formato JSON cifrado.</p>
+            <button class="btn btn-primary" style="margin-top:10px" onclick="exportBackup()">💾 Descargar Backup</button>
+          </div>
+          <div class="divider"></div>
+          <div>
+            <h4 style="margin-bottom:8px;color:var(--burgundy)">⬆️ Restaurar desde Copia</h4>
+            <p class="text-muted">⚠️ Esto reemplazará TODOS los datos actuales.</p>
+            <div class="file-drop" style="margin-top:10px" onclick="document.getElementById('backup-file').click()">
+              <div class="file-icon">📂</div><p>Clic para seleccionar archivo .json de backup</p>
+              <input type="file" id="backup-file" accept="application/json,.json" style="display:none" onchange="previewBackup(this)">
+              <span id="backup-file-name" class="text-muted"></span>
+            </div>
+            <button class="btn btn-danger" style="margin-top:10px" onclick="importBackup()">♻️ Restaurar Backup</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function exportBackup() {
+  const json = JSON.stringify(STATE, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `LaCatedral_Backup_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  addAuditLog('BACKUP','Copia de seguridad exportada');
+  showToast('Backup descargado','success');
+}
+
+function previewBackup(input) {
+  const label = document.getElementById('backup-file-name');
+  if (input.files[0]) label.textContent = '✅ ' + input.files[0].name;
+}
+
+function importBackup() {
+  const input = document.getElementById('backup-file');
+  if (!input.files[0]) { showToast('Seleccione un archivo de backup','warning'); return; }
+  confirmAction('⚠️ ¿Restaurar backup? Se perderán los datos actuales.', function(){
+    const r = new FileReader();
+    r.onload = function(e) {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (!data.empleados || !data.config) throw new Error('Formato inválido');
+        STATE = data;
+        saveState();
+        addAuditLog('RESTORE','Datos restaurados desde backup');
+        showToast('Backup restaurado correctamente','success');
+        renderBackup(document.getElementById('app-content'));
+      } catch(err) { showToast('Error al leer el backup: ' + err.message,'error'); }
+    };
+    r.readAsText(input.files[0]);
+  });
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  STATE = loadState();
+  document.getElementById('p0').focus();
+});
+</script>
+</body>
+</html>
